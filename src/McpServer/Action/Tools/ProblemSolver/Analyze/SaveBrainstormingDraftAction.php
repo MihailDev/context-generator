@@ -49,6 +49,12 @@ use Psr\Log\LoggerInterface;
     description: 'Problem context with related information',
     required: false,
 )]
+#[InputSchema(
+    name: 'approved_by_owner',
+    type: 'boolean',
+    description: 'Approved by owner',
+    required: false,
+)]
 final readonly class SaveBrainstormingDraftAction
 {
     public function __construct(
@@ -82,6 +88,7 @@ final readonly class SaveBrainstormingDraftAction
         $defaultProject = $parsedBody['default_project'];
         $brainstormingDraft = $parsedBody['brainstorming_draft'];
         $problemContext = $parsedBody['problem_context'] ?? [];
+        $approvedByOwner = !empty($parsedBody['approved_by_owner']);
 
         try {
             $problem = $this->problemService->getProblem($problemId);
@@ -97,11 +104,35 @@ final readonly class SaveBrainstormingDraftAction
                 $problemContext,
             );
 
-            // Return success response with pause instructions
+            if ($approvedByOwner) {
+                $this->problemService->startBrainstorming(
+                    $problem,
+                    $problemType,
+                    $defaultProject,
+                    $brainstormingDraft,
+                    $problemContext,
+                );
+
+                // Return success response with pause instructions
+                return new CallToolResult([
+                    $this->instructionService->getAnalyzeCompleteInstructions($problem),
+                    $this->instructionService->getPauseInstructions($problem),
+                ]);
+            }
+
+            $this->problemService->saveAnalyze(
+                $problem,
+                $problemType,
+                $defaultProject,
+                $brainstormingDraft,
+                $problemContext,
+            );
+
+
             return new CallToolResult([
-                $this->instructionService->getAnalyzeCompleteInstructions($problem),
-                $this->instructionService->getPauseInstructions($problem),
+                $this->instructionService->getAnalyzeInstructions($problem),
             ]);
+
         } catch (\Throwable $e) {
             $this->logger->error('Error saving brainstorming draft', [
                 'problem_id' => $problemId,

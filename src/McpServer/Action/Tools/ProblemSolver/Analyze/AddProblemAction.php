@@ -8,6 +8,7 @@ use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
 use Butschster\ContextGenerator\McpServer\Attribute\Tool;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionService;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
+use Butschster\ContextGenerator\McpServer\ProjectService\ProjectServiceInterface;
 use Butschster\ContextGenerator\McpServer\Routing\Attribute\Post;
 use Mcp\Types\CallToolResult;
 use Mcp\Types\TextContent;
@@ -36,6 +37,7 @@ final readonly class AddProblemAction
         private LoggerInterface    $logger,
         private ProblemService     $problemService,
         private InstructionService $instructionService,
+        private ProjectServiceInterface $projectService,
     ) {}
 
     #[Post(path: '/tools/call/add-problem', name: 'tools.add-problem')]
@@ -67,8 +69,13 @@ final readonly class AddProblemAction
         }
 
         try {
+
             // Create a new problem or use existing problem ID
-            $problem = $this->problemService->createProblem($originalProblem, $problemId);
+            $problem = $this->problemService->createProblem(
+                $originalProblem,
+                $problemId,
+                $this->projectService->getProjectName(),
+            );
 
             // Return success response with instructions
             return new CallToolResult([

@@ -14,7 +14,7 @@ interface ProblemRepositoryInterface
     /**
      * Save a problem to the repository.
      */
-    public function save(Problem $problem): void;
+    public function save(Problem $problem): bool;
 
     /**
      * Find a problem by its identifier.

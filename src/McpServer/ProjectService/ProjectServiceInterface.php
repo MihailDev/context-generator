@@ -20,4 +20,6 @@ interface ProjectServiceInterface
     public function processResourceRequestParams(ReadResourceRequestParams $params): ReadResourceRequestParams;
 
     public function processResponse(mixed $payload): mixed;
+
+    public function getProjectName(): ?string;
 }

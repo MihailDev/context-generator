@@ -80,6 +80,11 @@ final readonly class ProjectService implements ProjectServiceInterface
         );
     }
 
+    public function getProjectName(): ?string
+    {
+        return $this->projectName;
+    }
+
     private function addProjectSignature(string $description): string
     {
         return 'Important ONLY for project "' . $this->projectName . '". ' . $description;

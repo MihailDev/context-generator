@@ -28,6 +28,7 @@ final readonly class ProblemService
     public function createProblem(
         string  $problemDescription,
         ?string $problemId = null,
+        ?string $projectName = null,
     ): Problem {
         $id = $problemId ?? $this->generateProblemId();
 
@@ -40,6 +41,11 @@ final readonly class ProblemService
             $id,
             $problemDescription,
         );
+
+        if ($projectName !== null) {
+            $problem->setDefaultProject($projectName);
+        }
+
         $this->problemRepository->save($problem);
 
         return $problem;
@@ -79,16 +85,18 @@ final readonly class ProblemService
         string  $defaultProject,
         string  $brainstormingDraft,
         array   $context,
-    ): Problem {
-        $problem->setType($problemType)
-            ->setDefaultProject($defaultProject)
-            ->setBrainstormingDraft($brainstormingDraft)
-            ->setContext($context)
-            ->setCurrentStep(ProblemStep::BRAINSTORMING);
+    ): bool {
 
-        $this->problemRepository->save($problem);
+        $problem->setCurrentStep(ProblemStep::BRAINSTORMING);
 
-        return $problem;
+        return $this->saveAnalyze(
+            $problem,
+            $problemType,
+            $defaultProject,
+            $brainstormingDraft,
+            $context,
+        );
+
     }
 
     /**
@@ -190,6 +198,25 @@ final readonly class ProblemService
     public function problemExists(string $problemId): bool
     {
         return $this->problemRepository->exists($problemId);
+    }
+
+    public function saveAnalyze(
+        Problem $problem,
+        string  $problemType,
+        string  $defaultProject,
+        string  $brainstormingDraft,
+        array   $context,
+    ): bool {
+        $problem->setType($problemType)
+            ->setDefaultProject($defaultProject)
+            ->setBrainstormingDraft($brainstormingDraft)
+            ->setContext($context);
+
+        if ($problem->getCurrentStep() === ProblemStep::NEW) {
+            $problem->setCurrentStep(ProblemStep::ANALYZE);
+        }
+
+        return $this->problemRepository->save($problem);
     }
 
     /**

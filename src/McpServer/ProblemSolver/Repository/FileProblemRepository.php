@@ -23,7 +23,7 @@ class FileProblemRepository implements ProblemRepositoryInterface
         }
     }
 
-    public function save(Problem $problem): void
+    public function save(Problem $problem): bool
     {
         $filePath = $this->getFilePath($problem->getId());
         $data = \json_encode($problem->toArray(), JSON_PRETTY_PRINT);
@@ -32,7 +32,7 @@ class FileProblemRepository implements ProblemRepositoryInterface
             throw new \RuntimeException('Failed to encode problem data');
         }
 
-        $this->files->write($filePath, $data, FilesInterface::RUNTIME, true);
+        return $this->files->write($filePath, $data, FilesInterface::RUNTIME, true);
     }
 
     public function findById(string $id): ?Problem
