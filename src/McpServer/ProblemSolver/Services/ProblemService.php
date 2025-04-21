@@ -8,6 +8,12 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemDocumentRepositoryInterface;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemRepositoryInterface;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\StepHandlerInterface;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\AnalyzeHandler;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\BarnstormingHandler;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\PlanHandler;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\ChangesHandler;
+use Psr\Container\ContainerInterface;
 
 /**
  * Service for managing problems.
@@ -17,6 +23,11 @@ final readonly class ProblemService
     public function __construct(
         private ProblemRepositoryInterface $problemRepository,
         private ProblemDocumentRepositoryInterface $problemDocumentRepository,
+        private AnalyzeHandler $analyzeHandler,
+        private BarnstormingHandler $barnstormingHandler,
+        private PlanHandler $planHandler,
+        private ChangesHandler $changesHandler,
+        private ContainerInterface $container,
     ) {}
 
     /**
@@ -32,6 +43,7 @@ final readonly class ProblemService
         ?string $problemId = null,
         ?string $projectName = null,
     ): Problem {
+
         $id = $problemId ?? $this->generateProblemId();
 
         // Check if a problem with this ID already exists
@@ -102,6 +114,42 @@ final readonly class ProblemService
     }
 
     /**
+     * Start the plan step for a problem.
+     *
+     * @param Problem $problem The problem to update
+     * @return bool True if successful
+     */
+    public function startPlanStep(Problem $problem): bool
+    {
+        $problem->setCurrentStep(ProblemStep::PLAN);
+        return $this->save($problem);
+    }
+
+    /**
+     * Start the solve step for a problem.
+     *
+     * @param Problem $problem The problem to update
+     * @return bool True if successful
+     */
+    public function startSolveStep(Problem $problem): bool
+    {
+        $problem->setCurrentStep(ProblemStep::CHANGES);
+        return $this->save($problem);
+    }
+
+    /**
+     * Mark a problem as completed.
+     *
+     * @param Problem $problem The problem to complete
+     * @return bool True if successful
+     */
+    public function completeProblem(Problem $problem): bool
+    {
+        $problem->setCurrentStep(ProblemStep::COMPLETED);
+        return $this->save($problem);
+    }
+
+    /**
      * Check if the problem is at the expected step.
      *
      * @param Problem $problem The problem to check
@@ -167,18 +215,30 @@ final readonly class ProblemService
      * Save a problem to the repository.
      *
      * @param Problem $problem The problem to save
-     * @return Problem The saved problem
+     * @return bool True if successful
      */
     public function save(
         Problem $problem,
         bool    $clearReturnReason = true,
-    ): Problem {
+    ): bool {
         if ($clearReturnReason) {
             $problem->setReturnReason(null);
         }
 
-        $this->problemRepository->save($problem);
-        return $problem;
+        return $this->problemRepository->save($problem);
+    }
+
+    /**
+     * Update the context for a problem.
+     *
+     * @param Problem $problem The problem to update
+     * @param array $context New context data
+     * @return bool True if successful
+     */
+    public function updateProblemContext(Problem $problem, array $context): bool
+    {
+        $problem->setContext($context);
+        return $this->save($problem);
     }
 
     /**
@@ -220,6 +280,19 @@ final readonly class ProblemService
         }
 
         return $this->problemRepository->save($problem);
+    }
+
+    public function getHandler(Problem $problem): StepHandlerInterface
+    {
+        return match ($problem->getCurrentStep()) {
+            ProblemStep::NEW, ProblemStep::ANALYZE => $this->analyzeHandler,
+            ProblemStep::BRAINSTORMING => $this->barnstormingHandler,
+            ProblemStep::PLANNING => $this->planHandler,
+            ProblemStep::IMPLEMENTATION => $this->changesHandler,
+            default => throw new \InvalidArgumentException(
+                "No handler available for step: {$problem->getCurrentStep()->value}",
+            ),
+        };
     }
 
     /**

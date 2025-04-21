@@ -74,10 +74,10 @@ abstract class BaseReturnToStepAction
                 $parsedBody['return_reason'],
             );
 
+            $handler = $this->problemService->getHandler($problem);
+
             return new CallToolResult(
-                [
-                    $this->instructionService->getContinueInstruction($problem),
-                ],
+                $handler->getContinueInstruction($problem)->getCallContents(),
             );
         } catch (\Throwable $e) {
             $this->logger->error(

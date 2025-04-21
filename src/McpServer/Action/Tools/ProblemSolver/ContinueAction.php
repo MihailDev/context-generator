@@ -51,15 +51,14 @@ final readonly class ContinueAction
         $problemId = $parsedBody['problem_id'];
 
         try {
+            // Get the problem and prepare for continuation
             $problem = $this->problemService->getProblem($problemId);
             $this->problemService->onContinue($problem);
 
-            return new CallToolResult(
-                [
-                    $this->instructionService->getContinueInstruction($problem),
-                ],
-            );
+            $handler = $this->problemService->getHandler($problem);
 
+            // Return continue instructions
+            return new CallToolResult($handler->getContinueInstruction($problem));
         } catch (\Throwable $e) {
             $this->logger->error('Error in continue or restore action', [
                 'problem_id' => $problemId,

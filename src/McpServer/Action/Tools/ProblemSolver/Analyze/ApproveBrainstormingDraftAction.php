@@ -15,7 +15,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 
 #[Tool(
-    name: 'save-brainstorming-draft',
+    name: 'approve-brainstorming-draft',
     description: 'Save a brainstorming draft for a problem',
 )]
 #[InputSchema(
@@ -24,48 +24,24 @@ use Psr\Log\LoggerInterface;
     description: 'Problem ID',
     required: true,
 )]
-#[InputSchema(
-    name: 'problem_type',
-    type: 'string',
-    description: 'Type of the problem (feature, bug, research, refactoring)',
-    required: true,
-)]
-#[InputSchema(
-    name: 'default_project',
-    type: 'string',
-    description: 'Default project related to the problem',
-    required: true,
-)]
-#[InputSchema(
-    name: 'brainstorming_draft',
-    type: 'string',
-    description: 'Draft guide for brainstorming',
-    required: true,
-)]
-#[InputSchema(
-    name: 'problem_context',
-    type: 'object',
-    description: 'Problem context with related information',
-    required: false,
-)]
 
-final readonly class SaveBrainstormingDraftAction
+final readonly class ApproveBrainstormingDraftAction
 {
     public function __construct(
         private LoggerInterface $logger,
         private ProblemService $problemService,
     ) {}
 
-    #[Post(path: '/tools/call/save-brainstorming-draft', name: 'tools.save-brainstorming-draft')]
+    #[Post(path: '/tools/call/approve-brainstorming-draft', name: 'tools.approve-brainstorming-draft')]
     public function __invoke(ServerRequestInterface $request): CallToolResult
     {
-        $this->logger->info('Processing save-brainstorming-draft tool');
+        $this->logger->info('Processing approve-brainstorming-draft tool');
 
         // Get params from the parsed body for POST requests
         $parsedBody = $request->getParsedBody();
 
         // Validate required parameters
-        $requiredParams = ['problem_id', 'problem_type', 'default_project', 'brainstorming_draft'];
+        $requiredParams = ['problem_id'];
         foreach ($requiredParams as $param) {
             if (!isset($parsedBody[$param])) {
                 return new CallToolResult([
@@ -77,10 +53,6 @@ final readonly class SaveBrainstormingDraftAction
         }
 
         $problemId = $parsedBody['problem_id'];
-        $problemType = $parsedBody['problem_type'];
-        $defaultProject = $parsedBody['default_project'];
-        $brainstormingDraft = $parsedBody['brainstorming_draft'];
-        $problemContext = $parsedBody['problem_context'] ?? [];
 
         try {
             $problem = $this->problemService->getProblem($problemId);
@@ -89,14 +61,9 @@ final readonly class SaveBrainstormingDraftAction
 
             \assert($handler instanceof AnalyzeHandler);
 
-            $instructions = $handler->saveBrainstormingDraft(
+            $instructions = $handler->approveBrainstormingDraft(
                 $problem,
-                $problemType,
-                $defaultProject,
-                $brainstormingDraft,
-                $problemContext,
             );
-
 
             return new CallToolResult($instructions->getCallContents());
 

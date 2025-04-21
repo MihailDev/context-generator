@@ -6,6 +6,7 @@ namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analy
 
 use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
 use Butschster\ContextGenerator\McpServer\Attribute\Tool;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\AnalyzeHandler;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionService;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
 use Butschster\ContextGenerator\McpServer\ProjectService\ProjectServiceInterface;
@@ -63,24 +64,25 @@ final readonly class AddProblemAction
             $this->logger->info('Problem with ID already exists', []);
             $problem = $this->problemService->getProblem($problemId);
 
-            return new CallToolResult([
-                $this->instructionService->getContinueInstructionsOnError($problem, 'Problem with ID already exists'),
-            ], true);
+            $handler = $this->problemService->getHandler($problem);
+
+            return new CallToolResult($handler->instructionsOnWrongAction('Problem with ID already exists')->getCallContents(), true);
         }
 
         try {
-
-            // Create a new problem or use existing problem ID
+            // Create a new problem
             $problem = $this->problemService->createProblem(
                 $originalProblem,
                 $problemId,
                 $this->projectService->getProjectName(),
             );
 
+            $analyzeHandler = $this->problemService->getHandler($problem);
+
+            \assert($analyzeHandler instanceof AnalyzeHandler);
+
             // Return success response with instructions
-            return new CallToolResult([
-                $this->instructionService->getFirstAnalyzeInstructions($problem),
-            ]);
+            return new CallToolResult($analyzeHandler->startInstructions());
         } catch (\Throwable $e) {
             $this->logger->error('Error adding problem', [
                 'original_problem' => $originalProblem,
