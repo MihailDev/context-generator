@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum;
 
-enum WorkflowStep: string
+enum ProblemStep: string
 {
     case NEW = 'new';
     case ANALYZE = 'analyze';

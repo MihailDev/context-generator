@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Data;
+namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Repository;
 
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemInstruction;
 use Spiral\Files\FilesInterface;
@@ -10,7 +10,7 @@ use Spiral\Files\FilesInterface;
 /**
  * Service for loading instruction content from files.
  */
-readonly class InstructionContent
+readonly class FileInstructionRepository implements InstructionRepositoryInterface
 {
     public function __construct(
         private FilesInterface $files,
@@ -36,6 +36,7 @@ readonly class InstructionContent
      */
     private function getInstructionPath(string $name): string
     {
-        return __DIR__ . \DIRECTORY_SEPARATOR . 'DefaultInstructions' . \DIRECTORY_SEPARATOR . $name . '.md';
+        return __DIR__ . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . 'Data' . \DIRECTORY_SEPARATOR .
+            'DefaultInstructions' . \DIRECTORY_SEPARATOR . $name . '.md';
     }
 }

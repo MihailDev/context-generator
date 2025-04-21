@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Entity;
 
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\WorkflowStep;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
 
 /**
  * Represents a problem to be solved.
@@ -42,9 +42,9 @@ class Problem
     private array $context = [];
 
     /**
-     * @var WorkflowStep Current step in the problem-solving workflow
+     * @var ProblemStep Current step in the problem-solving workflow
      */
-    private WorkflowStep $currentStep = WorkflowStep::NEW;
+    private ProblemStep $currentStep = ProblemStep::NEW;
 
     /**
      * @var string|null Reason for returning to a previous step
@@ -84,7 +84,7 @@ class Problem
         }
 
         if (isset($data['currentStep'])) {
-            $problem->setCurrentStep(WorkflowStep::tryFrom($data['currentStep']) ?? WorkflowStep::NEW);
+            $problem->setCurrentStep(ProblemStep::tryFrom($data['currentStep']) ?? ProblemStep::NEW);
         }
 
         if (isset($data['returnReason'])) {
@@ -148,12 +148,12 @@ class Problem
         return $this;
     }
 
-    public function getCurrentStep(): WorkflowStep
+    public function getCurrentStep(): ProblemStep
     {
         return $this->currentStep;
     }
 
-    public function setCurrentStep(WorkflowStep $currentStep): self
+    public function setCurrentStep(ProblemStep $currentStep): self
     {
         $this->currentStep = $currentStep;
         return $this;

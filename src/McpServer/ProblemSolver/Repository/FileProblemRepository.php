@@ -10,7 +10,7 @@ use Spiral\Files\FilesInterface;
 /**
  * File-based implementation of the ProblemRepository interface.
  */
-class FileProblemRepository implements ProblemRepository
+class FileProblemRepository implements ProblemRepositoryInterface
 {
     public function __construct(
         private string $storageDir,

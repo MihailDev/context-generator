@@ -9,7 +9,7 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
 /**
  * Interface for problem repository implementations.
  */
-interface ProblemRepository
+interface ProblemRepositoryInterface
 {
     /**
      * Save a problem to the repository.

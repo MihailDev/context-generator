@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Services;
 
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\WorkflowStep;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemRepository;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemRepositoryInterface;
 
 /**
  * Service for managing problems.
@@ -14,7 +14,7 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemReposi
 final readonly class ProblemService
 {
     public function __construct(
-        private ProblemRepository $problemRepository,
+        private ProblemRepositoryInterface $problemRepository,
     ) {}
 
     /**
@@ -84,7 +84,7 @@ final readonly class ProblemService
             ->setDefaultProject($defaultProject)
             ->setBrainstormingDraft($brainstormingDraft)
             ->setContext($context)
-            ->setCurrentStep(WorkflowStep::BRAINSTORMING);
+            ->setCurrentStep(ProblemStep::BRAINSTORMING);
 
         $this->problemRepository->save($problem);
 
@@ -95,12 +95,12 @@ final readonly class ProblemService
      * Check if the problem is at the expected step.
      *
      * @param Problem $problem The problem to check
-     * @param WorkflowStep $expectedStep The expected step
+     * @param ProblemStep $expectedStep The expected step
      * @throws \InvalidArgumentException If problem is not at the expected step
      */
     public function checkStep(
-        Problem      $problem,
-        WorkflowStep $expectedStep,
+        Problem     $problem,
+        ProblemStep $expectedStep,
     ): void {
         if ($problem->getCurrentStep() !== $expectedStep) {
             throw new \InvalidArgumentException(
@@ -131,14 +131,14 @@ final readonly class ProblemService
      * Restore a problem to a specific step.
      *
      * @param Problem $problem The problem to restore
-     * @param WorkflowStep $step The step to restore to
+     * @param ProblemStep $step The step to restore to
      * @param string $returnReason The reason for restoring to this step
      * @throws \InvalidArgumentException If trying to restore to a later step
      */
     public function restoreToStep(
-        Problem      $problem,
-        WorkflowStep $step,
-        string       $returnReason,
+        Problem     $problem,
+        ProblemStep $step,
+        string      $returnReason,
     ): void {
         // Set the return reason
         $problem->setReturnReason($returnReason);

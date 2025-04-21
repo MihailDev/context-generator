@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver;
 
 use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\WorkflowStep;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionService;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
 use Mcp\Types\CallToolResult;
@@ -35,7 +35,7 @@ abstract class BaseReturnToStepAction
 
     public function process(
         ServerRequestInterface $request,
-        WorkflowStep           $step,
+        ProblemStep            $step,
     ): CallToolResult {
         $this->logger->info('Processing return-to-step ' . $step->value . ' tool');
 

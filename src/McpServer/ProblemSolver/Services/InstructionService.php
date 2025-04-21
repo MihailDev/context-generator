@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Services;
 
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Data\InstructionContent;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemInstruction;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\WorkflowStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\InstructionRepositoryInterface;
 use Mcp\Types\TextContent;
 
 /**
@@ -16,7 +15,7 @@ use Mcp\Types\TextContent;
 final readonly class InstructionService
 {
     public function __construct(
-        private InstructionContent $instructionTemplates,
+        private InstructionRepositoryInterface $instructionTemplates,
     ) {}
 
     /**
@@ -132,8 +131,6 @@ final readonly class InstructionService
 TEXT;
         }
 
-        // Add step-specific instructions
-        $stepInstructions = $this->getStepInstructions($problem, $currentStep);
 
         return new TextContent(
             $this->getInstruction(
@@ -147,7 +144,6 @@ TEXT;
                     '{original_problem}' => $problem->getOriginalProblem(),
                     '{brainstorming_draft_text}' => $brainstormingDraftText,
                     '{context_formatted}' => $contextFormatted,
-                    '{step_instructions}' => $stepInstructions,
                 ],
             ),
         );
@@ -197,27 +193,6 @@ TEXT;
         }
 
         return $formatted;
-    }
-
-    /**
-     * Get step-specific instructions for a problem.
-     *
-     * @param Problem $problem The problem
-     * @param WorkflowStep $step The workflow step
-     * @return string Step-specific instructions
-     */
-    public function getStepInstructions(
-        Problem $problem,
-        WorkflowStep $step,
-    ): string {
-        $instructionType = match ($step) {
-            WorkflowStep::ANALYZE => ProblemInstruction::AnalyzeInstruction,
-            WorkflowStep::BRAINSTORMING => ProblemInstruction::BrainstormingInstructions,
-            WorkflowStep::PLANNING => ProblemInstruction::TaskPlanInstructions,
-            WorkflowStep::IMPLEMENTATION => ProblemInstruction::SolveTaskInstructions,
-        };
-
-        return $this->getInstruction($instructionType);
     }
 
     /**
