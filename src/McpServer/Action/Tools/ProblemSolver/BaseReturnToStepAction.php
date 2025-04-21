@@ -33,11 +33,9 @@ abstract class BaseReturnToStepAction
         private readonly InstructionService $instructionService,
     ) {}
 
-    abstract public function __invoke(ServerRequestInterface $request): CallToolResult;
-
     public function process(
         ServerRequestInterface $request,
-        WorkflowStep           $step
+        WorkflowStep           $step,
     ): CallToolResult {
         $this->logger->info('Processing return-to-step ' . $step->value . ' tool');
 
@@ -100,4 +98,6 @@ abstract class BaseReturnToStepAction
             );
         }
     }
+
+    abstract public function __invoke(ServerRequestInterface $request): CallToolResult;
 }

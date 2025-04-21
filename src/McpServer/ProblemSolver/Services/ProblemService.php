@@ -11,10 +11,10 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemReposi
 /**
  * Service for managing problems.
  */
-class ProblemService
+final readonly class ProblemService
 {
     public function __construct(
-        private readonly ProblemRepository $problemRepository,
+        private ProblemRepository $problemRepository,
     ) {}
 
     /**
@@ -23,6 +23,7 @@ class ProblemService
      * @param string $problemDescription Original problem description
      * @param string|null $problemId Custom problem ID (generated if null)
      * @return Problem The created problem
+     * @throws \InvalidArgumentException If problem with given ID already exists
      */
     public function createProblem(
         string  $problemDescription,
@@ -63,13 +64,13 @@ class ProblemService
     }
 
     /**
-     * Update problem details for Step 1.
+     * Update problem details to start brainstorming phase.
      *
-     * @param Problem $problemId Problem ID
+     * @param Problem $problem The problem to update
      * @param string $problemType Type of the problem
      * @param string $defaultProject Default project
      * @param string $brainstormingDraft Draft guide for brainstorming
-     * @param array $context Problem context
+     * @param array<string, mixed> $context Problem context
      * @return Problem The updated problem
      */
     public function startBrainstorming(
@@ -83,11 +84,73 @@ class ProblemService
             ->setDefaultProject($defaultProject)
             ->setBrainstormingDraft($brainstormingDraft)
             ->setContext($context)
-        ->setCurrentStep(WorkflowStep::BRAINSTORMING);
+            ->setCurrentStep(WorkflowStep::BRAINSTORMING);
 
         $this->problemRepository->save($problem);
 
         return $problem;
+    }
+
+    /**
+     * Check if the problem is at the expected step.
+     *
+     * @param Problem $problem The problem to check
+     * @param WorkflowStep $expectedStep The expected step
+     * @throws \InvalidArgumentException If problem is not at the expected step
+     */
+    public function checkStep(
+        Problem      $problem,
+        WorkflowStep $expectedStep,
+    ): void {
+        if ($problem->getCurrentStep() !== $expectedStep) {
+            throw new \InvalidArgumentException(
+                \sprintf(
+                    "Problem is at step '%s', but expected step is '%s'",
+                    $problem->getCurrentStep()->value,
+                    $expectedStep->value,
+                ),
+            );
+        }
+    }
+
+    /**
+     * Handle continue action for a problem.
+     *
+     * @param Problem $problem The problem to continue
+     */
+    public function onContinue(Problem $problem): void
+    {
+        // Clear any return reason when continuing
+        $problem->setReturnReason(null);
+
+        // Save the problem with updated state
+        $this->problemRepository->save($problem);
+    }
+
+    /**
+     * Restore a problem to a specific step.
+     *
+     * @param Problem $problem The problem to restore
+     * @param WorkflowStep $step The step to restore to
+     * @param string $returnReason The reason for restoring to this step
+     * @throws \InvalidArgumentException If trying to restore to a later step
+     */
+    public function restoreToStep(
+        Problem      $problem,
+        WorkflowStep $step,
+        string       $returnReason,
+    ): void {
+        // Set the return reason
+        $problem->setReturnReason($returnReason);
+
+        // Update the current step
+        $problem->setCurrentStep($step);
+
+        // Save the problem
+        $this->save(
+            $problem,
+            false,
+        );
     }
 
     /**
@@ -96,8 +159,14 @@ class ProblemService
      * @param Problem $problem The problem to save
      * @return Problem The saved problem
      */
-    public function save(Problem $problem): Problem
-    {
+    public function save(
+        Problem $problem,
+        bool    $clearReturnReason = true,
+    ): Problem {
+        if ($clearReturnReason) {
+            $problem->setReturnReason(null);
+        }
+
         $this->problemRepository->save($problem);
         return $problem;
     }
@@ -123,14 +192,6 @@ class ProblemService
         return $this->problemRepository->exists($problemId);
     }
 
-    public function onContinue(Problem $problem): void {}
-
-    public function restoreToStep(
-        Problem      $problem,
-        WorkflowStep $step,
-        string       $return_reason,
-    ): void {}
-
     /**
      * Generate a unique problem ID.
      *
@@ -138,15 +199,6 @@ class ProblemService
      */
     private function generateProblemId(): string
     {
-        return 'problem_' . \date('Ymd') . '_' . \substr(
-            \md5(
-                \uniqid(
-                    (string) \mt_rand(),
-                    true,
-                ),
-            ),
-            0,
-            8,
-        );
+        return 'local-' . \date('YmdHis');
     }
 }

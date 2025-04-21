@@ -41,12 +41,57 @@ class Problem
      */
     private array $context = [];
 
+    /**
+     * @var WorkflowStep Current step in the problem-solving workflow
+     */
     private WorkflowStep $currentStep = WorkflowStep::NEW;
+
+    /**
+     * @var string|null Reason for returning to a previous step
+     */
+    private ?string $returnReason = null;
 
     public function __construct(string $id, string $originalProblem)
     {
         $this->id = $id;
         $this->originalProblem = $originalProblem;
+    }
+
+    /**
+     * Create a Problem instance from an array.
+     *
+     * @param array<string, mixed> $data Array representation of the problem
+     * @return self New Problem instance
+     */
+    public static function fromArray(array $data): self
+    {
+        $problem = new self($data['id'], $data['originalProblem']);
+
+        if (isset($data['type'])) {
+            $problem->setType($data['type']);
+        }
+
+        if (isset($data['defaultProject'])) {
+            $problem->setDefaultProject($data['defaultProject']);
+        }
+
+        if (isset($data['brainstormingDraft'])) {
+            $problem->setBrainstormingDraft($data['brainstormingDraft']);
+        }
+
+        if (isset($data['context'])) {
+            $problem->setContext($data['context']);
+        }
+
+        if (isset($data['currentStep'])) {
+            $problem->setCurrentStep(WorkflowStep::tryFrom($data['currentStep']) ?? WorkflowStep::NEW);
+        }
+
+        if (isset($data['returnReason'])) {
+            $problem->setReturnReason($data['returnReason']);
+        }
+
+        return $problem;
     }
 
     public function getId(): string
@@ -114,6 +159,17 @@ class Problem
         return $this;
     }
 
+    public function getReturnReason(): ?string
+    {
+        return $this->returnReason;
+    }
+
+    public function setReturnReason(?string $returnReason): self
+    {
+        $this->returnReason = $returnReason;
+        return $this;
+    }
+
     public function addContextItem(string $key, mixed $value): self
     {
         $this->context[$key] = $value;
@@ -122,6 +178,8 @@ class Problem
 
     /**
      * Convert the problem to an array representation.
+     *
+     * @return array<string, mixed> Array representation of the problem
      */
     public function toArray(): array
     {
@@ -133,36 +191,7 @@ class Problem
             'brainstormingDraft' => $this->brainstormingDraft,
             'context' => $this->context,
             'currentStep' => $this->currentStep->value,
+            'returnReason' => $this->returnReason,
         ];
-    }
-
-    /**
-     * Create a Problem instance from an array.
-     */
-    public static function fromArray(array $data): self
-    {
-        $problem = new self($data['id'], $data['originalProblem']);
-
-        if (isset($data['type'])) {
-            $problem->setType($data['type']);
-        }
-
-        if (isset($data['defaultProject'])) {
-            $problem->setDefaultProject($data['defaultProject']);
-        }
-
-        if (isset($data['brainstormingDraft'])) {
-            $problem->setBrainstormingDraft($data['brainstormingDraft']);
-        }
-
-        if (isset($data['context'])) {
-            $problem->setContext($data['context']);
-        }
-
-        if (isset($data['currentStep'])) {
-            $problem->setCurrentStep(WorkflowStep::tryFrom($data['currentStep']) ?? WorkflowStep::NEW);;
-        }
-
-        return $problem;
     }
 }

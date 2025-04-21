@@ -62,7 +62,7 @@ final readonly class AddProblemAction
             $problem = $this->problemService->getProblem($problemId);
 
             return new CallToolResult([
-                $this->instructionService->getContinueInstructionsOnError($problem, 'Problem with ID already exists')
+                $this->instructionService->getContinueInstructionsOnError($problem, 'Problem with ID already exists'),
             ], true);
         }
 
@@ -72,7 +72,7 @@ final readonly class AddProblemAction
 
             // Return success response with instructions
             return new CallToolResult([
-                $this->instructionService->getFirstAnalyzeInstructions($problem)
+                $this->instructionService->getFirstAnalyzeInstructions($problem),
             ]);
         } catch (\Throwable $e) {
             $this->logger->error('Error adding problem', [

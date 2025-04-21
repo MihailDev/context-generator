@@ -17,7 +17,30 @@ final readonly class ProblemWorkflowService
         private InstructionService $instructionService,
     ) {}
 
+    /**
+     * Move a problem to the next step in the workflow.
+     *
+     * @param string $problemId Problem ID
+     * @return Problem The updated problem
+     * @throws \InvalidArgumentException If problem not found or cannot move to next step
+     */
+    public function moveToNextStep(string $problemId): Problem
+    {
+        $problem = $this->problemService->getProblem($problemId);
+        $currentStep = $problem->getCurrentStep();
 
+        // Get next step
+        $nextStep = $currentStep->next();
+        if ($nextStep === null) {
+            throw new \InvalidArgumentException("Problem is already at the final step");
+        }
+
+        // Update problem with new step
+        $problem->setCurrentStep($nextStep);
+        $this->problemService->save($problem);
+
+        return $problem;
+    }
 
     /**
      * Move a problem to the previous step in the workflow.
@@ -29,10 +52,7 @@ final readonly class ProblemWorkflowService
     public function moveToPreviousStep(string $problemId): Problem
     {
         $problem = $this->problemService->getProblem($problemId);
-        $currentStepNumber = $problem->getCurrentStep();
-
-        // Map numeric step to enum value
-        $currentStep = $this->getWorkflowStepFromNumber($currentStepNumber);
+        $currentStep = $problem->getCurrentStep();
 
         // Get previous step
         $previousStep = $currentStep->previous();
@@ -41,7 +61,7 @@ final readonly class ProblemWorkflowService
         }
 
         // Update problem with new step
-        $problem->setCurrentStep($this->getNumberFromWorkflowStep($previousStep));
+        $problem->setCurrentStep($previousStep);
         $this->problemService->save($problem);
 
         return $problem;
@@ -59,8 +79,13 @@ final readonly class ProblemWorkflowService
     {
         $problem = $this->problemService->getProblem($problemId);
 
+        // Validate the transition
+        if (!$this->validateStepTransition($problemId, $targetStep)) {
+            throw new \InvalidArgumentException("Invalid step transition");
+        }
+
         // Update problem with new step
-        $problem->setCurrentStep($this->getNumberFromWorkflowStep($targetStep));
+        $problem->setCurrentStep($targetStep);
         $this->problemService->save($problem);
 
         return $problem;
@@ -76,10 +101,7 @@ final readonly class ProblemWorkflowService
     public function canMoveToNextStep(string $problemId): bool
     {
         $problem = $this->problemService->getProblem($problemId);
-        $currentStepNumber = $problem->getCurrentStep();
-
-        // Map numeric step to enum value
-        $currentStep = $this->getWorkflowStepFromNumber($currentStepNumber);
+        $currentStep = $problem->getCurrentStep();
 
         // Check if next step exists
         return $currentStep->next() !== null;
@@ -95,10 +117,7 @@ final readonly class ProblemWorkflowService
     public function canMoveToPreviousStep(string $problemId): bool
     {
         $problem = $this->problemService->getProblem($problemId);
-        $currentStepNumber = $problem->getCurrentStep();
-
-        // Map numeric step to enum value
-        $currentStep = $this->getWorkflowStepFromNumber($currentStepNumber);
+        $currentStep = $problem->getCurrentStep();
 
         // Check if previous step exists
         return $currentStep->previous() !== null;
@@ -114,10 +133,29 @@ final readonly class ProblemWorkflowService
     public function getCurrentStep(string $problemId): WorkflowStep
     {
         $problem = $this->problemService->getProblem($problemId);
-        return $this->getWorkflowStepFromNumber($problem->getCurrentStep());
+        return $problem->getCurrentStep();
     }
 
+    /**
+     * Get instructions for the current step of a problem.
+     *
+     * @param string $problemId Problem ID
+     * @return string Instructions for the current step
+     * @throws \InvalidArgumentException If problem not found
+     */
+    public function getCurrentStepInstructions(string $problemId): string
+    {
+        $problem = $this->problemService->getProblem($problemId);
+        $currentStep = $problem->getCurrentStep();
 
+        return match ($currentStep) {
+            WorkflowStep::ANALYZE => $this->instructionService->getAnalyzeInstructions($problem)->text,
+            WorkflowStep::BRAINSTORMING => $this->instructionService->getBrainstormingInstructions(),
+            WorkflowStep::PLANNING => $this->instructionService->getTaskPlanInstructions(),
+            WorkflowStep::IMPLEMENTATION => $this->instructionService->getSolveTaskInstructions(),
+            default => "Instructions for step {$currentStep->value} are not available.",
+        };
+    }
 
     /**
      * Validate if a problem can be moved to a specific step.
@@ -130,7 +168,7 @@ final readonly class ProblemWorkflowService
     public function validateStepTransition(string $problemId, WorkflowStep $targetStep): bool
     {
         $problem = $this->problemService->getProblem($problemId);
-        $currentStep = $this->getWorkflowStepFromNumber($problem->getCurrentStep());
+        $currentStep = $problem->getCurrentStep();
 
         // Can't move to the same step
         if ($currentStep === $targetStep) {
@@ -143,39 +181,5 @@ final readonly class ProblemWorkflowService
         }
 
         return false;
-    }
-
-    /**
-     * Convert a numeric step to a WorkflowStep enum value.
-     *
-     * @param int $stepNumber Numeric step
-     * @return WorkflowStep The corresponding step enum
-     * @throws \InvalidArgumentException If step number is invalid
-     */
-    private function getWorkflowStepFromNumber(int $stepNumber): WorkflowStep
-    {
-        return match($stepNumber) {
-            1 => WorkflowStep::ANALYZE,
-            2 => WorkflowStep::BRAINSTORMING,
-            3 => WorkflowStep::PLANNING,
-            4 => WorkflowStep::IMPLEMENTATION,
-            default => throw new \InvalidArgumentException("Invalid step number: {$stepNumber}"),
-        };
-    }
-
-    /**
-     * Convert a WorkflowStep enum value to a numeric step.
-     *
-     * @param WorkflowStep $step The step enum
-     * @return int The corresponding numeric step
-     */
-    private function getNumberFromWorkflowStep(WorkflowStep $step): int
-    {
-        return match($step) {
-            WorkflowStep::ANALYZE => 1,
-            WorkflowStep::BRAINSTORMING => 2,
-            WorkflowStep::PLANNING => 3,
-            WorkflowStep::IMPLEMENTATION => 4,
-        };
     }
 }
