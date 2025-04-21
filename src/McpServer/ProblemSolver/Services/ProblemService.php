@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Services;
 
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\WorkflowStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemRepository;
 
@@ -12,15 +13,9 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemReposi
  */
 class ProblemService
 {
-    /**
-     * @var ProblemRepository Repository for storing problems
-     */
-    private ProblemRepository $problemRepository;
-
-    public function __construct(ProblemRepository $problemRepository)
-    {
-        $this->problemRepository = $problemRepository;
-    }
+    public function __construct(
+        private readonly ProblemRepository $problemRepository,
+    ) {}
 
     /**
      * Create a new problem with the given description.
@@ -29,18 +24,23 @@ class ProblemService
      * @param string|null $problemId Custom problem ID (generated if null)
      * @return Problem The created problem
      */
-    public function createProblem(string $problemDescription, ?string $problemId = null): Problem
-    {
+    public function createProblem(
+        string  $problemDescription,
+        ?string $problemId = null,
+    ): Problem {
         $id = $problemId ?? $this->generateProblemId();
-        
+
         // Check if a problem with this ID already exists
         if ($this->problemRepository->exists($id)) {
             throw new \InvalidArgumentException("Problem with ID {$id} already exists");
         }
-        
-        $problem = new Problem($id, $problemDescription);
+
+        $problem = new Problem(
+            $id,
+            $problemDescription,
+        );
         $this->problemRepository->save($problem);
-        
+
         return $problem;
     }
 
@@ -54,40 +54,51 @@ class ProblemService
     public function getProblem(string $problemId): Problem
     {
         $problem = $this->problemRepository->findById($problemId);
-        
+
         if ($problem === null) {
             throw new \InvalidArgumentException("Problem with ID {$problemId} not found");
         }
-        
+
         return $problem;
     }
 
     /**
      * Update problem details for Step 1.
      *
-     * @param string $problemId Problem ID
+     * @param Problem $problemId Problem ID
      * @param string $problemType Type of the problem
      * @param string $defaultProject Default project
      * @param string $brainstormingDraft Draft guide for brainstorming
      * @param array $context Problem context
      * @return Problem The updated problem
      */
-    public function updateProblemDetails(
-        string $problemId,
-        string $problemType,
-        string $defaultProject,
-        string $brainstormingDraft,
-        array $context
+    public function startBrainstorming(
+        Problem $problem,
+        string  $problemType,
+        string  $defaultProject,
+        string  $brainstormingDraft,
+        array   $context,
     ): Problem {
-        $problem = $this->getProblem($problemId);
-        
         $problem->setType($problemType)
             ->setDefaultProject($defaultProject)
             ->setBrainstormingDraft($brainstormingDraft)
-            ->setContext($context);
-        
+            ->setContext($context)
+        ->setCurrentStep(WorkflowStep::BRAINSTORMING);
+
         $this->problemRepository->save($problem);
-        
+
+        return $problem;
+    }
+
+    /**
+     * Save a problem to the repository.
+     *
+     * @param Problem $problem The problem to save
+     * @return Problem The saved problem
+     */
+    public function save(Problem $problem): Problem
+    {
+        $this->problemRepository->save($problem);
         return $problem;
     }
 
@@ -112,6 +123,14 @@ class ProblemService
         return $this->problemRepository->exists($problemId);
     }
 
+    public function onContinue(Problem $problem): void {}
+
+    public function restoreToStep(
+        Problem      $problem,
+        WorkflowStep $step,
+        string       $return_reason,
+    ): void {}
+
     /**
      * Generate a unique problem ID.
      *
@@ -119,6 +138,15 @@ class ProblemService
      */
     private function generateProblemId(): string
     {
-        return 'problem_' . date('Ymd') . '_' . substr(md5(uniqid((string) rand(), true)), 0, 8);
+        return 'problem_' . \date('Ymd') . '_' . \substr(
+            \md5(
+                \uniqid(
+                    (string) \mt_rand(),
+                    true,
+                ),
+            ),
+            0,
+            8,
+        );
     }
 }

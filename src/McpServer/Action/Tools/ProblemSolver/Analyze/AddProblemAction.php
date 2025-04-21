@@ -33,8 +33,8 @@ use Psr\Log\LoggerInterface;
 final readonly class AddProblemAction
 {
     public function __construct(
-        private LoggerInterface $logger,
-        private ProblemService $problemService,
+        private LoggerInterface    $logger,
+        private ProblemService     $problemService,
         private InstructionService $instructionService,
     ) {}
 
@@ -45,7 +45,7 @@ final readonly class AddProblemAction
 
         // Get params from the parsed body for POST requests
         $parsedBody = $request->getParsedBody();
-        
+
         if (!isset($parsedBody['original_problem'])) {
             return new CallToolResult([
                 new TextContent(
@@ -56,6 +56,17 @@ final readonly class AddProblemAction
 
         $originalProblem = $parsedBody['original_problem'];
         $problemId = $parsedBody['problem_id'] ?? null;
+
+        if (!empty($problemId) && $this->problemService->problemExists($problemId)) {
+            $this->logger->info('Problem with ID already exists', []);
+            $problem = $this->problemService->getProblem($problemId);
+
+            return new CallToolResult([
+                new TextContent(
+                    text: $this->instructionService->getContinueInstructionsOnError($problem, 'Problem with ID already exists'),
+                ),
+            ], true);
+        }
 
         try {
             // Create a new problem or use existing problem ID

@@ -5,92 +5,74 @@ declare(strict_types=1);
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Repository;
 
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
+use Spiral\Files\FilesInterface;
 
 /**
  * File-based implementation of the ProblemRepository interface.
  */
 class FileProblemRepository implements ProblemRepository
 {
-    /**
-     * @var string Directory where problem files are stored
-     */
-    private string $storageDir;
+    public function __construct(
+        private string $storageDir,
+        private readonly FilesInterface $files,
+    ) {
+        $this->storageDir = \rtrim($storageDir, '/\\');
 
-    public function __construct(string $storageDir)
-    {
-        $this->storageDir = rtrim($storageDir, '/');
-        
-        // Ensure storage directory exists
-        if (!is_dir($this->storageDir)) {
-            mkdir($this->storageDir, 0755, true);
+        if ($this->files->isDirectory($this->storageDir)) {
+            $this->files->ensureDirectory($this->storageDir);
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function save(Problem $problem): void
     {
         $filePath = $this->getFilePath($problem->getId());
-        $data = json_encode($problem->toArray(), JSON_PRETTY_PRINT);
-        
+        $data = \json_encode($problem->toArray(), JSON_PRETTY_PRINT);
+
         if ($data === false) {
             throw new \RuntimeException('Failed to encode problem data');
         }
-        
-        if (file_put_contents($filePath, $data) === false) {
-            throw new \RuntimeException("Failed to write problem data to {$filePath}");
-        }
+
+        $this->files->write($filePath, $data, FilesInterface::RUNTIME, true);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function findById(string $id): ?Problem
     {
         $filePath = $this->getFilePath($id);
-        
-        if (!file_exists($filePath)) {
+
+        if (!$this->files->exists($filePath)) {
             return null;
         }
-        
-        $content = file_get_contents($filePath);
-        
-        if ($content === false) {
-            throw new \RuntimeException("Failed to read problem data from {$filePath}");
-        }
-        
-        $data = json_decode($content, true);
-        
+
+        $content = $this->files->read($filePath);
+
+        $data = \json_decode($content, true);
+
         if ($data === null) {
             throw new \RuntimeException("Failed to decode problem data from {$filePath}");
         }
-        
+
         return Problem::fromArray($data);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function exists(string $id): bool
     {
-        return file_exists($this->getFilePath($id));
+        return $this->files->exists($this->getFilePath($id));
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function listIds(): array
     {
-        $files = glob($this->storageDir . '/*.json');
-        
+        $files = \glob($this->storageDir . '/*', \GLOB_ONLYDIR);
+
         if ($files === false) {
             return [];
         }
-        
-        return array_map(function ($file) {
-            return pathinfo($file, PATHINFO_FILENAME);
-        }, $files);
+
+        return $files;
+    }
+
+    public function getProblemDirectory(string $id): string
+    {
+        return $this->storageDir . \DIRECTORY_SEPARATOR . $id;
     }
 
     /**
@@ -98,6 +80,6 @@ class FileProblemRepository implements ProblemRepository
      */
     private function getFilePath(string $id): string
     {
-        return $this->storageDir . '/' . $id . '.json';
+        return $this->getProblemDirectory($id) . \DIRECTORY_SEPARATOR . 'problem.json';
     }
 }

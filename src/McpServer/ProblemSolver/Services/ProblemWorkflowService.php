@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Services;
 
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\WorkflowStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Enum\WorkflowStep;
 
 /**
  * Service for managing problem solving workflow.

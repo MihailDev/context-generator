@@ -35,4 +35,6 @@ interface ProblemRepository
      * @return array<string> List of problem IDs
      */
     public function listIds(): array;
+
+    public function getProblemDirectory(string $id): string;
 }

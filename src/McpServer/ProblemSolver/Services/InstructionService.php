@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Services;
 
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
+use Mcp\Types\TextContent;
+
 /**
  * Service for generating step-specific instructions for problem solving.
  */
@@ -12,8 +15,7 @@ class InstructionService
     /**
      * Get instructions for the first analysis phase.
      */
-    public function getFirstAnalyzeInstructions(): string
-    {
+    public function getFirstAnalyzeInstructions(): string {
         return <<<INSTRUCTIONS
 ## First Analysis Instructions
 
@@ -43,8 +45,7 @@ INSTRUCTIONS;
     /**
      * Get analyze step instructions for continuing or restoring.
      */
-    public function getAnalyzeInstructions(): string
-    {
+    public function getAnalyzeInstructions(): string {
         return <<<INSTRUCTIONS
 ## Analyze Step Instructions
 
@@ -71,8 +72,7 @@ INSTRUCTIONS;
     /**
      * Get pause instructions after saving the brainstorming draft.
      */
-    public function getPauseInstructions(): string
-    {
+    public function getPauseInstructions(Problem $problem): TextContent {
         return <<<INSTRUCTIONS
 ## Analysis Step Complete
 
@@ -89,10 +89,9 @@ INSTRUCTIONS;
     /**
      * Format problem context for display.
      */
-    public function formatProblemContext(array $context): string
-    {
+    public function formatProblemContext(array $context): string {
         $formatted = "## Problem Context\n\n";
-        
+
         // Format directories if available
         if (isset($context['directories']) && is_array($context['directories'])) {
             $formatted .= "### Directories\n";
@@ -101,7 +100,7 @@ INSTRUCTIONS;
             }
             $formatted .= "\n";
         }
-        
+
         // Format files if available
         if (isset($context['files']) && is_array($context['files'])) {
             $formatted .= "### Files\n";
@@ -110,7 +109,7 @@ INSTRUCTIONS;
             }
             $formatted .= "\n";
         }
-        
+
         // Format packages if available
         if (isset($context['packages']) && is_array($context['packages'])) {
             $formatted .= "### Packages\n";
@@ -119,13 +118,13 @@ INSTRUCTIONS;
             }
             $formatted .= "\n";
         }
-        
+
         // Format documents if available
         if (isset($context['documents']) && is_string($context['documents'])) {
             $formatted .= "### Documents\n";
             $formatted .= $context['documents'] . "\n\n";
         }
-        
+
         return $formatted;
     }
 
@@ -135,8 +134,10 @@ INSTRUCTIONS;
      * @param int $step The step number
      * @param array $context Additional context for instructions
      */
-    public function getStepInstructions(int $step, array $context = []): string
-    {
+    public function getStepInstructions(
+        int   $step,
+        array $context = []
+    ): string {
         return match ($step) {
             1 => $this->getAnalyzeInstructions(),
             2 => $this->getBrainstormingInstructions($context),
@@ -149,8 +150,7 @@ INSTRUCTIONS;
     /**
      * Get instructions for brainstorming step.
      */
-    private function getBrainstormingInstructions(array $context = []): string
-    {
+    private function getBrainstormingInstructions(array $context = []): string {
         return <<<INSTRUCTIONS
 ## Brainstorming Step Instructions
 
@@ -183,8 +183,7 @@ INSTRUCTIONS;
     /**
      * Get instructions for task planning step.
      */
-    private function getTaskPlanInstructions(array $context = []): string
-    {
+    private function getTaskPlanInstructions(array $context = []): string {
         return <<<INSTRUCTIONS
 ## Task Plan Instructions
 
@@ -214,8 +213,7 @@ INSTRUCTIONS;
     /**
      * Get instructions for task solving step.
      */
-    private function getSolveTaskInstructions(array $context = []): string
-    {
+    private function getSolveTaskInstructions(array $context = []): string {
         return <<<INSTRUCTIONS
 ## Solve Task Instructions
 
@@ -234,4 +232,19 @@ In this step, you'll implement the changes defined in your task plan:
 The system will provide you with each change sequentially, along with the necessary context and specific instructions.
 INSTRUCTIONS;
     }
+
+    public function getContinueInstructionsOnError(
+        Problem $problem,
+        string $error
+    ): string {
+        //todo: get instructions for continuing on error
+    }
+
+    public function getContinueInstruction(Problem $problem): TextContent
+    {
+        //todo: get instructions for continuing
+        return new TextContent("Continue");
+    }
+
+    public function getAnalyzeCompleteInstructions(Problem $problem): TextContent {}
 }

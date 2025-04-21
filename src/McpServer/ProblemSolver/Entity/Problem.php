@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Entity;
 
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\WorkflowStep;
+
 /**
  * Represents a problem to be solved.
  */
@@ -39,10 +41,7 @@ class Problem
      */
     private array $context = [];
 
-    /**
-     * @var int Current step in the problem-solving process
-     */
-    private int $currentStep = 1;
+    private WorkflowStep $currentStep = WorkflowStep::NEW;
 
     public function __construct(string $id, string $originalProblem)
     {
@@ -104,12 +103,12 @@ class Problem
         return $this;
     }
 
-    public function getCurrentStep(): int
+    public function getCurrentStep(): WorkflowStep
     {
         return $this->currentStep;
     }
 
-    public function setCurrentStep(int $currentStep): self
+    public function setCurrentStep(WorkflowStep $currentStep): self
     {
         $this->currentStep = $currentStep;
         return $this;
@@ -133,7 +132,7 @@ class Problem
             'defaultProject' => $this->defaultProject,
             'brainstormingDraft' => $this->brainstormingDraft,
             'context' => $this->context,
-            'currentStep' => $this->currentStep,
+            'currentStep' => $this->currentStep->value,
         ];
     }
 
@@ -143,27 +142,27 @@ class Problem
     public static function fromArray(array $data): self
     {
         $problem = new self($data['id'], $data['originalProblem']);
-        
+
         if (isset($data['type'])) {
             $problem->setType($data['type']);
         }
-        
+
         if (isset($data['defaultProject'])) {
             $problem->setDefaultProject($data['defaultProject']);
         }
-        
+
         if (isset($data['brainstormingDraft'])) {
             $problem->setBrainstormingDraft($data['brainstormingDraft']);
         }
-        
+
         if (isset($data['context'])) {
             $problem->setContext($data['context']);
         }
-        
+
         if (isset($data['currentStep'])) {
-            $problem->setCurrentStep($data['currentStep']);
+            $problem->setCurrentStep(WorkflowStep::tryFrom($data['currentStep']) ?? WorkflowStep::NEW);;
         }
-        
+
         return $problem;
     }
 }

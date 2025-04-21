@@ -63,7 +63,7 @@ final readonly class SaveBrainstormingDraftAction
 
         // Get params from the parsed body for POST requests
         $parsedBody = $request->getParsedBody();
-        
+
         // Validate required parameters
         $requiredParams = ['problem_id', 'problem_type', 'default_project', 'brainstorming_draft'];
         foreach ($requiredParams as $param) {
@@ -83,24 +83,21 @@ final readonly class SaveBrainstormingDraftAction
         $problemContext = $parsedBody['problem_context'] ?? [];
 
         try {
+            $problem = $this->problemService->getProblem($problemId);
+
             // Update the problem with brainstorming information
-            $problem = $this->problemService->updateProblemDetails(
-                $problemId,
+            $this->problemService->startBrainstorming(
+                $problem,
                 $problemType,
                 $defaultProject,
                 $brainstormingDraft,
-                $problemContext
+                $problemContext,
             );
 
             // Return success response with pause instructions
             return new CallToolResult([
-                new TextContent(
-                    text: \json_encode([
-                        'success' => true,
-                        'problem_id' => $problem->getId(),
-                        'instructions' => $this->instructionService->getPauseInstructions(),
-                    ]),
-                ),
+                $this->instructionService->getAnalyzeCompleteInstructions($problem),
+                $this->instructionService->getPauseInstructions($problem),
             ]);
         } catch (\Throwable $e) {
             $this->logger->error('Error saving brainstorming draft', [
