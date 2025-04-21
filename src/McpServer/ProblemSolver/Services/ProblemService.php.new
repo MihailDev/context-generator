@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Services;
 
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemDocumentEnum;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemDocumentRepositoryInterface;
@@ -16,7 +17,7 @@ final readonly class ProblemService
 {
     public function __construct(
         private ProblemRepositoryInterface $problemRepository,
-        private ProblemDocumentRepositoryInterface $problemDocumentRepository,
+        private ProblemDocumentRepositoryInterface $documentRepository,
     ) {}
 
     /**
@@ -88,7 +89,6 @@ final readonly class ProblemService
         string  $brainstormingDraft,
         array   $context,
     ): bool {
-
         $problem->setCurrentStep(ProblemStep::BRAINSTORMING);
 
         return $this->saveAnalyze(
@@ -98,7 +98,6 @@ final readonly class ProblemService
             $brainstormingDraft,
             $context,
         );
-
     }
 
     /**
@@ -202,6 +201,16 @@ final readonly class ProblemService
         return $this->problemRepository->exists($problemId);
     }
 
+    /**
+     * Save analysis information for a problem.
+     *
+     * @param Problem $problem The problem to update
+     * @param string $problemType Type of the problem
+     * @param string $defaultProject Default project
+     * @param string $brainstormingDraft Draft guide for brainstorming
+     * @param array<string, mixed> $context Problem context
+     * @return bool Whether the save was successful
+     */
     public function saveAnalyze(
         Problem $problem,
         string  $problemType,
@@ -213,13 +222,98 @@ final readonly class ProblemService
             ->setDefaultProject($defaultProject)
             ->setContext($context);
 
-        $this->problemDocumentRepository->setBrainstormingDraft($problem, $brainstormingDraft);
+        // Store the brainstorming draft as a document instead of in the problem
+        $this->documentRepository->save(
+            $problem,
+            ProblemDocumentEnum::BRAINSTORMING_DRAFT,
+            'main',
+            $brainstormingDraft,
+        );
 
         if ($problem->getCurrentStep() === ProblemStep::NEW) {
             $problem->setCurrentStep(ProblemStep::ANALYZE);
         }
 
         return $this->problemRepository->save($problem);
+    }
+
+    /**
+     * Get brainstorming draft for a problem.
+     *
+     * @param Problem $problem The problem to get the draft for
+     * @return string|null The brainstorming draft if found, null otherwise
+     */
+    public function getBrainstormingDraft(Problem $problem): ?string
+    {
+        // First try to get from the document repository
+        $draft = $this->documentRepository->get($problem, ProblemDocumentEnum::BRAINSTORMING_DRAFT, 'main');
+
+        // If not found in the document repository, try to get from the problem (legacy support)
+        if ($draft === null && $problem->getBrainstormingDraft() !== null) {
+            $draft = $problem->getBrainstormingDraft();
+
+            // Migrate the draft to the document repository
+            $this->documentRepository->save(
+                $problem,
+                ProblemDocumentEnum::BRAINSTORMING_DRAFT,
+                'main',
+                $draft,
+            );
+
+            // Remove the draft from the problem
+            $problem->setBrainstormingDraft(null);
+            $this->problemRepository->save($problem);
+        }
+
+        return $draft;
+    }
+
+    /**
+     * Save a document for a problem.
+     *
+     * @param Problem $problem The problem to save the document for
+     * @param ProblemDocumentEnum $category Document category
+     * @param string $name Document name
+     * @param string $content Document content
+     * @return bool Whether the save was successful
+     */
+    public function saveDocument(
+        Problem $problem,
+        ProblemDocumentEnum $category,
+        string $name,
+        string $content,
+    ): bool {
+        return $this->documentRepository->save($problem, $category, $name, $content);
+    }
+
+    /**
+     * Get a document for a problem.
+     *
+     * @param Problem $problem The problem to get the document for
+     * @param ProblemDocumentEnum $category Document category
+     * @param string $name Document name
+     * @return string|null The document content if found, null otherwise
+     */
+    public function getDocument(
+        Problem $problem,
+        ProblemDocumentEnum $category,
+        string $name,
+    ): ?string {
+        return $this->documentRepository->get($problem, $category, $name);
+    }
+
+    /**
+     * List all documents for a problem in a specific category.
+     *
+     * @param Problem $problem The problem to list documents for
+     * @param ProblemDocumentEnum $category Document category
+     * @return array<string> List of document names
+     */
+    public function listDocuments(
+        Problem $problem,
+        ProblemDocumentEnum $category,
+    ): array {
+        return $this->documentRepository->listDocuments($problem, $category);
     }
 
     /**

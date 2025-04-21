@@ -95,15 +95,6 @@ final readonly class SaveBrainstormingDraftAction
 
             $this->problemService->checkStep($problem, ProblemStep::ANALYZE);
 
-            // Update the problem with brainstorming information
-            $this->problemService->startBrainstorming(
-                $problem,
-                $problemType,
-                $defaultProject,
-                $brainstormingDraft,
-                $problemContext,
-            );
-
             if ($approvedByOwner) {
                 $this->problemService->startBrainstorming(
                     $problem,

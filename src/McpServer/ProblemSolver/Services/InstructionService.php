@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Services;
 
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemInstruction;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\InstructionRepositoryInterface;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemDocumentRepositoryInterface;
 use Mcp\Types\TextContent;
 
 /**
@@ -16,6 +18,7 @@ final readonly class InstructionService
 {
     public function __construct(
         private InstructionRepositoryInterface $instructionTemplates,
+        private ProblemDocumentRepositoryInterface $documentRepository,
     ) {}
 
     /**
@@ -122,11 +125,12 @@ final readonly class InstructionService
         $contextFormatted = $this->formatProblemContext($problem->getContext());
 
         $brainstormingDraftText = '';
-        if ($problem->getBrainstormingDraft() !== null) {
+        if ($problem->getCurrentStep() !== ProblemStep::NEW) {
+            $brainstormingDraft = $this->documentRepository->getBrainstormingDraft($problem) ?? 'Not Added';
             $brainstormingDraftText = <<<TEXT
 
 **Brainstorming Draft:**
-{$problem->getBrainstormingDraft()}
+{$brainstormingDraft}
 
 TEXT;
         }

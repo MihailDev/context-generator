@@ -11,6 +11,8 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
  */
 class Problem
 {
+    public const DOCUMENT_BRAINSTORMING_DRAFT = 'brainstorming_draft';
+
     /**
      * @var string Unique identifier for the problem
      */
@@ -123,17 +125,6 @@ class Problem
     public function setDefaultProject(string $defaultProject): self
     {
         $this->defaultProject = $defaultProject;
-        return $this;
-    }
-
-    public function getBrainstormingDraft(): ?string
-    {
-        return $this->brainstormingDraft;
-    }
-
-    public function setBrainstormingDraft(string $brainstormingDraft): self
-    {
-        $this->brainstormingDraft = $brainstormingDraft;
         return $this;
     }
 

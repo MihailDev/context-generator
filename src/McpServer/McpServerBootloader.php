@@ -28,10 +28,7 @@ use Butschster\ContextGenerator\McpServer\Action\Tools\ListToolsAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\Prompts\GetPromptToolAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\Prompts\ListPromptsToolAction;
 use Butschster\ContextGenerator\McpServer\Console\MCPServerCommand;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\FileInstructionRepository;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\FileProblemRepository;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\InstructionRepositoryInterface;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemRepositoryInterface;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\ProblemSolverBootloader;
 use Butschster\ContextGenerator\McpServer\ProjectService\ProjectServiceInterface;
 use Butschster\ContextGenerator\McpServer\Registry\McpItemsRegistry;
 use Butschster\ContextGenerator\McpServer\Routing\McpResponseStrategy;
@@ -59,6 +56,7 @@ final class McpServerBootloader extends Bootloader
         return [
             HttpClientBootloader::class,
             McpToolBootloader::class,
+            ProblemSolverBootloader::class,
         ];
     }
 
@@ -112,9 +110,6 @@ final class McpServerBootloader extends Bootloader
 
                 return $factory;
             },
-            InstructionRepositoryInterface::class => FileInstructionRepository::class,
-            ProblemRepositoryInterface::class => FileProblemRepository::class,
-
             RouteRegistrar::class => RouteRegistrar::class,
             McpItemsRegistry::class => McpItemsRegistry::class,
             StrategyInterface::class => McpResponseStrategy::class,
