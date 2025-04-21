@@ -39,3 +39,15 @@ documents:
           - ./Routing
           - ./Server.php
           - ./ServerFactory.php
+
+  - description: "Problem Solver"
+    outputPath: "problem_solver/code.md"
+    sources:
+      - type: tree
+        sourcePaths: ./
+
+      - type: file
+        sourcePaths:
+          - ./Action/Tools/ProblemSolver
+          - ./ProjectService
+          - ./Action/Tools/Filesystem/FileReadAction.php
