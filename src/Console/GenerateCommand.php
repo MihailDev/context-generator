@@ -7,6 +7,7 @@ namespace Butschster\ContextGenerator\Console;
 use Butschster\ContextGenerator\Application\AppScope;
 use Butschster\ContextGenerator\Config\ConfigurationProvider;
 use Butschster\ContextGenerator\Config\Exception\ConfigLoaderException;
+use Butschster\ContextGenerator\Config\Registry\ConfigRegistryAccessor;
 use Butschster\ContextGenerator\Console\Renderer\GenerateCommandRenderer;
 use Butschster\ContextGenerator\DirectoriesInterface;
 use Butschster\ContextGenerator\Document\Compiler\DocumentCompiler;
@@ -90,7 +91,14 @@ final class GenerateCommand extends BaseCommand
                 // Display summary header
                 $this->output->writeln('');
 
-                foreach ($loader->load()->getItems() as $document) {
+                $config = new ConfigRegistryAccessor($loader->load());
+
+                $imports = $config->getImports();
+                if ($imports !== null) {
+                    $renderer->renderImports($imports);
+                }
+
+                foreach ($config->getDocuments() as $document) {
                     $this->logger->info(\sprintf('Compiling %s...', $document->description));
 
                     $compiledDocument = $compiler->compile($document);

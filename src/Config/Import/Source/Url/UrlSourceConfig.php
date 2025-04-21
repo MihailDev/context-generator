@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\Config\Import\Source\Url;
 
+use Butschster\ContextGenerator\Config\Import\Source\Config\FilterConfig;
 use Butschster\ContextGenerator\Config\Import\Source\Config\SourceConfigInterface;
 
 /**
@@ -17,7 +18,8 @@ final readonly class UrlSourceConfig implements SourceConfigInterface
     public function __construct(
         public string $url,
         public int $ttl = 300,
-        public readonly array $headers = [],
+        public array $headers = [],
+        private ?FilterConfig $filter = null,
     ) {}
 
     /**
@@ -34,6 +36,7 @@ final readonly class UrlSourceConfig implements SourceConfigInterface
 
         $url = $config['url'];
         $headers = $config['headers'] ?? [];
+        $filter = FilterConfig::fromArray($config['filter'] ?? null);
 
         // Ensure headers is an array
         if (!\is_array($headers)) {
@@ -44,6 +47,7 @@ final readonly class UrlSourceConfig implements SourceConfigInterface
             url: $url,
             ttl: (int) ($config['ttl'] ?? 300),
             headers: $headers,
+            filter: $filter,
         );
     }
 
@@ -68,5 +72,26 @@ final readonly class UrlSourceConfig implements SourceConfigInterface
     public function getPath(): string
     {
         return $this->url;
+    }
+
+    public function getFilter(): ?FilterConfig
+    {
+        return $this->filter;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $result = [
+            'type' => $this->getType(),
+            'url' => $this->url,
+            'ttl' => $this->ttl,
+            'headers' => $this->headers,
+        ];
+
+        if ($this->filter !== null && !$this->filter->isEmpty()) {
+            $result['filter'] = $this->filter;
+        }
+
+        return $result;
     }
 }

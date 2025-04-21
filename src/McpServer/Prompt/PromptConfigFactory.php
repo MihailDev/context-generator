@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Butschster\ContextGenerator\McpServer\Prompt;
 
 use Butschster\ContextGenerator\McpServer\Prompt\Exception\PromptParsingException;
+use Butschster\ContextGenerator\McpServer\Prompt\Extension\PromptDefinition;
+use Butschster\ContextGenerator\McpServer\Prompt\Extension\PromptExtension;
 use Mcp\Types\Prompt;
 use Mcp\Types\PromptArgument;
 use Mcp\Types\PromptMessage;
@@ -40,6 +42,21 @@ final readonly class PromptConfigFactory
             $messages = $this->parseMessages($config['messages']);
         }
 
+        // Determine prompt type
+        $type = PromptType::fromString($config['type'] ?? null);
+
+        // Parse extensions if provided
+        $extensions = [];
+        if (isset($config['extend']) && \is_array($config['extend'])) {
+            $extensions = $this->parseExtensions($config['extend']);
+        }
+
+        // Parse tags if provided
+        $tags = [];
+        if (isset($config['tags']) && \is_array($config['tags'])) {
+            $tags = $this->parseTags($config['tags']);
+        }
+
         return new PromptDefinition(
             id: $config['id'],
             prompt: new Prompt(
@@ -48,7 +65,78 @@ final readonly class PromptConfigFactory
                 arguments: $arguments,
             ),
             messages: $messages,
+            type: $type,
+            extensions: $extensions,
+            tags: $tags,
         );
+    }
+
+    /**
+     * Parses tags from configuration.
+     *
+     * @param array<mixed> $tagsConfig The tags configuration
+     * @return array<string> The parsed tags
+     * @throws PromptParsingException If the tags configuration is invalid
+     */
+    private function parseTags(array $tagsConfig): array
+    {
+        $tags = [];
+
+        foreach ($tagsConfig as $index => $tag) {
+            if (!\is_string($tag)) {
+                throw new PromptParsingException(
+                    \sprintf(
+                        'Tag at index %d must be a string',
+                        $index,
+                    ),
+                );
+            }
+
+            // Add the tag if it's not empty
+            if (!empty($tag)) {
+                $tags[] = $tag;
+            }
+        }
+
+        return $tags;
+    }
+
+    /**
+     * Parses extension configurations.
+     *
+     * @param array<mixed> $extensionConfigs The extension configurations
+     * @return array<PromptExtension> The parsed extensions
+     * @throws PromptParsingException If the extension configuration is invalid
+     */
+    private function parseExtensions(array $extensionConfigs): array
+    {
+        $extensions = [];
+
+        foreach ($extensionConfigs as $index => $extensionConfig) {
+            if (!\is_array($extensionConfig)) {
+                throw new PromptParsingException(
+                    \sprintf(
+                        'Extension at index %d must be an array',
+                        $index,
+                    ),
+                );
+            }
+
+            try {
+                $extensions[] = PromptExtension::fromArray($extensionConfig);
+            } catch (\InvalidArgumentException $e) {
+                throw new PromptParsingException(
+                    \sprintf(
+                        'Invalid extension at index %d: %s',
+                        $index,
+                        $e->getMessage(),
+                    ),
+                    previous: $e,
+                );
+            }
+        }
+
+        return $extensions;
     }
 
     /**

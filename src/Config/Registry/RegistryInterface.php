@@ -7,8 +7,9 @@ namespace Butschster\ContextGenerator\Config\Registry;
 /**
  * Common interface for all registries
  * @template TItem of mixed
+ * @extends \IteratorAggregate<TItem>
  */
-interface RegistryInterface extends \JsonSerializable
+interface RegistryInterface extends \JsonSerializable, \IteratorAggregate
 {
     /**
      * Get the registry type identifier
@@ -18,7 +19,7 @@ interface RegistryInterface extends \JsonSerializable
     /**
      * Get all items in the registry
      *
-     * @return array<TItem>
+     * @return list<TItem>
      */
     public function getItems(): array;
 }

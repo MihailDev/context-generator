@@ -7,7 +7,7 @@ namespace Butschster\ContextGenerator\Config\Import\Source\Config;
 /**
  * Interface for all import source configurations
  */
-interface SourceConfigInterface
+interface SourceConfigInterface extends \JsonSerializable
 {
     /**
      * Get the source path
@@ -18,4 +18,9 @@ interface SourceConfigInterface
      * Get the source type identifier
      */
     public function getType(): string;
+
+    /**
+     * Get the filter configuration, if any
+     */
+    public function getFilter(): ?FilterConfig;
 }
