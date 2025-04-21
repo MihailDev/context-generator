@@ -62,9 +62,7 @@ final readonly class AddProblemAction
             $problem = $this->problemService->getProblem($problemId);
 
             return new CallToolResult([
-                new TextContent(
-                    text: $this->instructionService->getContinueInstructionsOnError($problem, 'Problem with ID already exists'),
-                ),
+                $this->instructionService->getContinueInstructionsOnError($problem, 'Problem with ID already exists')
             ], true);
         }
 
@@ -74,13 +72,7 @@ final readonly class AddProblemAction
 
             // Return success response with instructions
             return new CallToolResult([
-                new TextContent(
-                    text: \json_encode([
-                        'success' => true,
-                        'problem_id' => $problem->getId(),
-                        'instructions' => $this->instructionService->getFirstAnalyzeInstructions(),
-                    ]),
-                ),
+                $this->instructionService->getFirstAnalyzeInstructions($problem)
             ]);
         } catch (\Throwable $e) {
             $this->logger->error('Error adding problem', [

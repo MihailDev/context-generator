@@ -4,75 +4,40 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Services;
 
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Data\InstructionContent;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
 use Mcp\Types\TextContent;
 
 /**
  * Service for generating step-specific instructions for problem solving.
  */
-class InstructionService
+readonly class InstructionService
 {
+    public function __construct(
+        private InstructionContent $instructionContent,
+    ) {}
+
     /**
      * Get instructions for the first analysis phase.
      */
-    public function getFirstAnalyzeInstructions(): string {
-        return <<<INSTRUCTIONS
-## First Analysis Instructions
-
-1. **Analyze the problem description**:
-   - Break down the problem into its components
-   - Identify key requirements and constraints
-   - Note any unclear or ambiguous points
-
-2. **Determine problem type**:
-   - **Feature**: Adding new or changing existing functionality or business logic
-   - **Bug**: Fixing unexpected program behavior
-   - **Research**: Exploring implementation possibilities for new features/technologies
-   - **Refactoring**: Code redesign without changing external behavior
-
-3. **Identify default project**:
-   - Determine which project or component is primarily affected
-
-4. **Create a brainstorming draft**:
-   - Outline key discussion points
-   - Identify areas that need clarification
-   - Suggest initial approaches or solutions to consider
-
-Once you've completed these steps, save your brainstorming draft using the SaveBrainstormingDraftAction.
-INSTRUCTIONS;
+    public function getFirstAnalyzeInstructions(Problem $problem): TextContent
+    {
+        return new TextContent($this->instructionContent->getFirstAnalyzeInstruction());
     }
 
     /**
      * Get analyze step instructions for continuing or restoring.
      */
-    public function getAnalyzeInstructions(): string {
-        return <<<INSTRUCTIONS
-## Analyze Step Instructions
-
-Review the problem details and continue with your analysis:
-
-1. **Review the problem description**:
-   - Ensure you understand the key requirements
-   - Identify any missing information
-
-2. **Confirm or update the problem type**:
-   - Feature, Bug, Research, or Refactoring
-
-3. **Verify the default project**:
-   - Ensure the correct project is identified
-
-4. **Finalize the brainstorming draft**:
-   - Complete any unfinished sections
-   - Add additional insights or considerations
-
-When ready, save your final brainstorming draft using the SaveBrainstormingDraftAction.
-INSTRUCTIONS;
+    public function getAnalyzeInstructions(Problem $problem): TextContent
+    {
+        return new TextContent($this->instructionContent->getAnalyzeInstruction());
     }
 
     /**
      * Get pause instructions after saving the brainstorming draft.
      */
-    public function getPauseInstructions(Problem $problem): TextContent {
+    public function getPauseInstructions(Problem $problem): TextContent
+    {
         return <<<INSTRUCTIONS
 ## Analysis Step Complete
 
@@ -89,11 +54,12 @@ INSTRUCTIONS;
     /**
      * Format problem context for display.
      */
-    public function formatProblemContext(array $context): string {
+    public function formatProblemContext(array $context): string
+    {
         $formatted = "## Problem Context\n\n";
 
         // Format directories if available
-        if (isset($context['directories']) && is_array($context['directories'])) {
+        if (isset($context['directories']) && \is_array($context['directories'])) {
             $formatted .= "### Directories\n";
             foreach ($context['directories'] as $directory) {
                 $formatted .= "- {$directory}\n";
@@ -102,7 +68,7 @@ INSTRUCTIONS;
         }
 
         // Format files if available
-        if (isset($context['files']) && is_array($context['files'])) {
+        if (isset($context['files']) && \is_array($context['files'])) {
             $formatted .= "### Files\n";
             foreach ($context['files'] as $file) {
                 $formatted .= "- {$file}\n";
@@ -111,7 +77,7 @@ INSTRUCTIONS;
         }
 
         // Format packages if available
-        if (isset($context['packages']) && is_array($context['packages'])) {
+        if (isset($context['packages']) && \is_array($context['packages'])) {
             $formatted .= "### Packages\n";
             foreach ($context['packages'] as $package) {
                 $formatted .= "- {$package}\n";
@@ -120,7 +86,7 @@ INSTRUCTIONS;
         }
 
         // Format documents if available
-        if (isset($context['documents']) && is_string($context['documents'])) {
+        if (isset($context['documents']) && \is_string($context['documents'])) {
             $formatted .= "### Documents\n";
             $formatted .= $context['documents'] . "\n\n";
         }
@@ -136,7 +102,7 @@ INSTRUCTIONS;
      */
     public function getStepInstructions(
         int   $step,
-        array $context = []
+        array $context = [],
     ): string {
         return match ($step) {
             1 => $this->getAnalyzeInstructions(),
@@ -147,10 +113,29 @@ INSTRUCTIONS;
         };
     }
 
+    public function getContinueInstructionsOnError(
+        Problem $problem,
+        string $error,
+    ): TextContent {
+        //todo: get instructions for continuing on error
+    }
+
+    public function getContinueInstruction(Problem $problem): TextContent
+    {
+        //todo: get instructions for continuing
+        return new TextContent("Continue");
+    }
+
+    public function getAnalyzeCompleteInstructions(Problem $problem): TextContent
+    {
+
+    }
+
     /**
      * Get instructions for brainstorming step.
      */
-    private function getBrainstormingInstructions(array $context = []): string {
+    private function getBrainstormingInstructions(array $context = []): string
+    {
         return <<<INSTRUCTIONS
 ## Brainstorming Step Instructions
 
@@ -183,7 +168,8 @@ INSTRUCTIONS;
     /**
      * Get instructions for task planning step.
      */
-    private function getTaskPlanInstructions(array $context = []): string {
+    private function getTaskPlanInstructions(array $context = []): string
+    {
         return <<<INSTRUCTIONS
 ## Task Plan Instructions
 
@@ -213,7 +199,8 @@ INSTRUCTIONS;
     /**
      * Get instructions for task solving step.
      */
-    private function getSolveTaskInstructions(array $context = []): string {
+    private function getSolveTaskInstructions(array $context = []): string
+    {
         return <<<INSTRUCTIONS
 ## Solve Task Instructions
 
@@ -232,19 +219,4 @@ In this step, you'll implement the changes defined in your task plan:
 The system will provide you with each change sequentially, along with the necessary context and specific instructions.
 INSTRUCTIONS;
     }
-
-    public function getContinueInstructionsOnError(
-        Problem $problem,
-        string $error
-    ): string {
-        //todo: get instructions for continuing on error
-    }
-
-    public function getContinueInstruction(Problem $problem): TextContent
-    {
-        //todo: get instructions for continuing
-        return new TextContent("Continue");
-    }
-
-    public function getAnalyzeCompleteInstructions(Problem $problem): TextContent {}
 }

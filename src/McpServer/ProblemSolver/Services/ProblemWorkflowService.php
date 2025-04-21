@@ -17,33 +17,7 @@ final readonly class ProblemWorkflowService
         private InstructionService $instructionService,
     ) {}
 
-    /**
-     * Move a problem to the next step in the workflow.
-     *
-     * @param string $problemId Problem ID
-     * @return Problem The updated problem
-     * @throws \InvalidArgumentException If problem not found or cannot move to next step
-     */
-    public function moveToNextStep(string $problemId): Problem
-    {
-        $problem = $this->problemService->getProblem($problemId);
-        $currentStepNumber = $problem->getCurrentStep();
 
-        // Map numeric step to enum value
-        $currentStep = $this->getWorkflowStepFromNumber($currentStepNumber);
-
-        // Get next step
-        $nextStep = $currentStep->next();
-        if ($nextStep === null) {
-            throw new \InvalidArgumentException("Problem is already at the final step");
-        }
-
-        // Update problem with new step
-        $problem->setCurrentStep($this->getNumberFromWorkflowStep($nextStep));
-        $this->problemService->save($problem);
-
-        return $problem;
-    }
 
     /**
      * Move a problem to the previous step in the workflow.
@@ -143,35 +117,7 @@ final readonly class ProblemWorkflowService
         return $this->getWorkflowStepFromNumber($problem->getCurrentStep());
     }
 
-    /**
-     * Get instructions for the current step of a problem.
-     *
-     * @param string $problemId Problem ID
-     * @param array $context Additional context for instructions
-     * @return string Instructions for the current step
-     * @throws \InvalidArgumentException If problem not found
-     */
-    public function getCurrentStepInstructions(string $problemId, array $context = []): string
-    {
-        $problem = $this->problemService->getProblem($problemId);
-        return $this->instructionService->getStepInstructions($problem->getCurrentStep(), $context);
-    }
 
-    /**
-     * Check if a problem is at a specific step.
-     *
-     * @param string $problemId Problem ID
-     * @param WorkflowStep $step Step to check
-     * @return bool True if the problem is at the given step
-     * @throws \InvalidArgumentException If problem not found
-     */
-    public function isAtStep(string $problemId, WorkflowStep $step): bool
-    {
-        $problem = $this->problemService->getProblem($problemId);
-        $currentStep = $this->getWorkflowStepFromNumber($problem->getCurrentStep());
-
-        return $currentStep === $step;
-    }
 
     /**
      * Validate if a problem can be moved to a specific step.

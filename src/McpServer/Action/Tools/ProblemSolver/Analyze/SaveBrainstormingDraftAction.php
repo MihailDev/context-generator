@@ -6,6 +6,7 @@ namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analy
 
 use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
 use Butschster\ContextGenerator\McpServer\Attribute\Tool;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\WorkflowStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionService;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
 use Butschster\ContextGenerator\McpServer\Routing\Attribute\Post;
@@ -84,6 +85,8 @@ final readonly class SaveBrainstormingDraftAction
 
         try {
             $problem = $this->problemService->getProblem($problemId);
+
+            $this->problemService->checkStep($problem, WorkflowStep::ANALYZE);
 
             // Update the problem with brainstorming information
             $this->problemService->startBrainstorming(
