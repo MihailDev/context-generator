@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver;
 
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\BrainstormingRepositoryInterface;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\FileBrainstormingRepository;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\FileInstructionRepository;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\FileProblemDocumentRepository;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\FileProblemRepository;
@@ -23,6 +25,7 @@ final class ProblemSolverBootloader extends Bootloader
             InstructionRepositoryInterface::class => FileInstructionRepository::class,
             ProblemRepositoryInterface::class => FileProblemRepository::class,
             ProblemDocumentRepositoryInterface::class => FileProblemDocumentRepository::class,
+            BrainstormingRepositoryInterface::class => FileBrainstormingRepository::class,
         ];
     }
 }

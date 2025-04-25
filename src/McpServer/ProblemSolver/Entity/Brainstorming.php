@@ -11,4 +11,22 @@ class Brainstorming
         public array $participants,
         public array $context,
     ) {}
+
+    public static function fromArray(array $data): Brainstorming
+    {
+        return new self(
+            $data['problem_id'],
+            $data['participants'],
+            $data['context'],
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'problem_id' => $this->problem_id,
+            'participants' => $this->participants,
+            'context' => $this->context,
+        ];
+    }
 }

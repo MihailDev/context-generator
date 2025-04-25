@@ -9,7 +9,7 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
 
 interface BrainstormingRepositoryInterface
 {
-    public function save(Brainstorming $problem): bool;
+    public function save(Brainstorming $brainstorming): bool;
 
     public function findById(Problem $problem): ?Brainstorming;
 
