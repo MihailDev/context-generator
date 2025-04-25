@@ -10,7 +10,6 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Type\ProblemActio
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemDocumentRepositoryInterface;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemRepositoryInterface;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionService;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
 use Mcp\Types\TextContent;
 use Psr\Log\LoggerInterface;
 
@@ -22,21 +21,16 @@ final readonly class AnalyzeHandler implements StepHandlerInterface
 {
     public function __construct(
         private LoggerInterface $logger,
-        private ProblemService $problemService,
         private ProblemRepositoryInterface $problemRepository,
         private InstructionService $instructionService,
         private ProblemDocumentRepositoryInterface $problemDocumentRepository,
+        private BarnstormingHandler $barnstormingHandler,
     ) {}
 
     /**
      * @return TextContent[] Instructions for the next steps
      */
-    public function startInstructions(): array {}
-
-    public function instructionsOnWrongAction(string $message): ProblemActionInstructions
-    {
-        // TODO: Implement instructionsOnWrongAction() method.
-    }
+    public function startInstructions(): ProblemActionInstructions {}
 
     public function saveBrainstormingDraft(
         Problem $problem,
@@ -52,22 +46,39 @@ final readonly class AnalyzeHandler implements StepHandlerInterface
         $this->problemDocumentRepository->setBrainstormingDraft($problem, $brainstormingDraft);
 
         $problem->setCurrentStep(ProblemStep::ANALYZE);
+
         $instructions = new ProblemActionInstructions();
-        if ($this->problemRepository->save($problem)) {
+        $this->problemRepository->save($problem);
 
-            $instructions->add();
-
-        } else {
-            throw new \Exception('Error saving problem');
-        }
+        $instructions->add($this->instructionService->getAnalyzeInstruction($problem));
 
         return $instructions;
     }
 
-    public function approveBrainstormingDraft(Problem $problem): ProblemActionInstructions {}
-
-    public function getContinueInstruction(Problem $problem): ProblemActionInstructions
+    public function approveBrainstormingDraft(Problem $problem): ProblemActionInstructions
     {
-        // TODO: Implement getContinueInstruction() method.
+        $problem->setCurrentStep(ProblemStep::BRAINSTORMING);
+
+
+
+        $this->problemRepository->save($problem);
+        $this->barnstormingHandler->addBarnstorming($problem);
+
+        return $this->getFinishInstruction($problem);
+    }
+
+    public function getContinueInstruction(Problem $problem): ProblemActionInstructions {}
+
+    public function getFinishInstruction(Problem $problem): ProblemActionInstructions
+    {
+        // TODO: Implement getFinishInstruction() method.
+    }
+
+    public function createProblem(Problem $problem): Problem
+    {
+
+        $this->problemRepository->save($problem);
+
+        return $problem;
     }
 }

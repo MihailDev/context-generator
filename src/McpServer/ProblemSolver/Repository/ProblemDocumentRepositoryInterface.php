@@ -70,4 +70,8 @@ interface ProblemDocumentRepositoryInterface
     public function getBrainstormingDraft(
         Problem $problem,
     ): ?string;
+
+    public function setLastProblem(string $getId): bool;
+
+    public function getLastProblem(): string;
 }

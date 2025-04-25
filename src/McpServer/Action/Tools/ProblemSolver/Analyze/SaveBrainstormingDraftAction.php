@@ -4,25 +4,17 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analyze;
 
+use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\BaseProblemAction;
 use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
 use Butschster\ContextGenerator\McpServer\Attribute\Tool;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\AnalyzeHandler;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
 use Butschster\ContextGenerator\McpServer\Routing\Attribute\Post;
 use Mcp\Types\CallToolResult;
-use Mcp\Types\TextContent;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Log\LoggerInterface;
 
 #[Tool(
     name: 'save-brainstorming-draft',
     description: 'Save a brainstorming draft for a problem',
-)]
-#[InputSchema(
-    name: 'problem_id',
-    type: 'string',
-    description: 'Problem ID',
-    required: true,
 )]
 #[InputSchema(
     name: 'problem_type',
@@ -49,32 +41,14 @@ use Psr\Log\LoggerInterface;
     required: false,
 )]
 
-final readonly class SaveBrainstormingDraftAction
+final class SaveBrainstormingDraftAction extends BaseProblemAction
 {
-    public function __construct(
-        private LoggerInterface $logger,
-        private ProblemService $problemService,
-    ) {}
-
     #[Post(path: '/tools/call/save-brainstorming-draft', name: 'tools.save-brainstorming-draft')]
     public function __invoke(ServerRequestInterface $request): CallToolResult
     {
         $this->logger->info('Processing save-brainstorming-draft tool');
 
-        // Get params from the parsed body for POST requests
-        $parsedBody = $request->getParsedBody();
-
-        // Validate required parameters
-        $requiredParams = ['problem_id', 'problem_type', 'default_project', 'brainstorming_draft'];
-        foreach ($requiredParams as $param) {
-            if (!isset($parsedBody[$param])) {
-                return new CallToolResult([
-                    new TextContent(
-                        text: \sprintf("Error: Missing required parameter: %s", $param),
-                    ),
-                ], isError: true);
-            }
-        }
+        $parsedBody = $this->validateRequiredParameters($request, [ 'problem_type', 'default_project', 'brainstorming_draft']);
 
         $problemId = $parsedBody['problem_id'];
         $problemType = $parsedBody['problem_type'];
@@ -98,7 +72,7 @@ final readonly class SaveBrainstormingDraftAction
             );
 
 
-            return new CallToolResult($instructions->getCallContents());
+            return $instructions->toCallToolResult();
 
         } catch (\Throwable $e) {
             $this->logger->error('Error saving brainstorming draft', [
@@ -106,11 +80,7 @@ final readonly class SaveBrainstormingDraftAction
                 'error' => $e->getMessage(),
             ]);
 
-            return new CallToolResult([
-                new TextContent(
-                    text: 'Error: ' . $e->getMessage(),
-                ),
-            ], isError: true);
+            throw $e;
         }
     }
 }

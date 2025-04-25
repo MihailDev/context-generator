@@ -6,63 +6,24 @@ namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver;
 
 use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionService;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
 use Mcp\Types\CallToolResult;
-use Mcp\Types\TextContent;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Log\LoggerInterface;
 
-#[InputSchema(
-    name: 'problem_id',
-    type: 'string',
-    description: 'Problem ID',
-    required: true,
-)]
 #[InputSchema(
     name: 'return_reason',
     type: 'string',
     description: 'Return Reason',
     required: true,
 )]
-abstract class BaseReturnToStepAction
+abstract class BaseReturnToStepAction extends BaseProblemAction
 {
-    public function __construct(
-        private readonly LoggerInterface $logger,
-        private readonly ProblemService $problemService,
-        private readonly InstructionService $instructionService,
-    ) {}
-
     public function process(
         ServerRequestInterface $request,
         ProblemStep            $step,
     ): CallToolResult {
         $this->logger->info('Processing return-to-step ' . $step->value . ' tool');
 
-        // Get params from the parsed body for POST requests
-        $parsedBody = $request->getParsedBody();
-
-        if (empty($parsedBody['problem_id'])) {
-            return new CallToolResult(
-                [
-                    new TextContent(
-                        text: 'Error: Missing required parameter: problem_id',
-                    ),
-                ],
-                isError: true,
-            );
-        }
-
-        if (empty($parsedBody['return_reason'])) {
-            return new CallToolResult(
-                [
-                    new TextContent(
-                        text: 'Error: Missing required parameter: return_reason',
-                    ),
-                ],
-                isError: true,
-            );
-        }
+        $parsedBody = $this->validateRequiredParameters($request, ['return_reason']);
 
         $problemId = $parsedBody['problem_id'];
 
@@ -76,9 +37,7 @@ abstract class BaseReturnToStepAction
 
             $handler = $this->problemService->getHandler($problem);
 
-            return new CallToolResult(
-                $handler->getContinueInstruction($problem)->getCallContents(),
-            );
+            return $handler->getContinueInstruction($problem)->toCallToolResult();
         } catch (\Throwable $e) {
             $this->logger->error(
                 'Error in restore action',
@@ -88,14 +47,7 @@ abstract class BaseReturnToStepAction
                 ],
             );
 
-            return new CallToolResult(
-                [
-                    new TextContent(
-                        text: 'Error: ' . $e->getMessage(),
-                    ),
-                ],
-                isError: true,
-            );
+            throw $e;
         }
     }
 

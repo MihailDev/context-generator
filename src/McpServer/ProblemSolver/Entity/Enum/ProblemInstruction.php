@@ -15,6 +15,7 @@ enum ProblemInstruction: string
     case AnalyzeCompleteInstructions = 'AnalyzeCompleteInstructions';
 
     // Brainstorming step instructions
+    case StartBrainstormingInstructions = 'StartBrainstormingInstructions';
     case BrainstormingInstructions = 'BrainstormingInstructions';
 
     // Task planning step instructions

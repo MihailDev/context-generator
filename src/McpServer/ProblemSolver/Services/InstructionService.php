@@ -7,6 +7,7 @@ namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Services;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemInstruction;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Type\ProblemActionInstructions;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\InstructionRepositoryInterface;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemDocumentRepositoryInterface;
 use Mcp\Types\TextContent;
@@ -198,6 +199,31 @@ TEXT;
 
         return $formatted;
     }
+
+    public function getAnalyzeInstruction(Problem $problem): string
+    {
+        return $this->getInstruction(ProblemInstruction::AnalyzeInstruction, [
+            '{problem_id}' => $problem->getId(),
+            '{problem_type}' => $problem->getType(),
+            '{default_project}' => $problem->getDefaultProject(),
+            '{current_step}' => $problem->getCurrentStep()->value,
+        ]);
+    }
+
+    public function getStartBrainstorming(Problem $problem): string
+    {
+        return $this->getInstruction(ProblemInstruction::BrainstormingInstructions, [
+            '{problem_id}' => $problem->getId(),
+            '{problem_type}' => $problem->getType(),
+            '{default_project}' => $problem->getDefaultProject(),
+            '{current_step}' => $problem->getCurrentStep()->value,
+        ]);
+    }
+
+    public function onCompleteStepInstructions(
+        Problem $problem,
+        ProblemStep $ANALYZE,
+    ): ProblemActionInstructions {}
 
     /**
      * Get instruction by template with replacements.

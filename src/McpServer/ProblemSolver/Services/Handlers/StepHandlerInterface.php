@@ -13,7 +13,7 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Type\ProblemActio
  */
 interface StepHandlerInterface
 {
-    public function instructionsOnWrongAction(string $message): ProblemActionInstructions;
-
     public function getContinueInstruction(Problem $problem): ProblemActionInstructions;
+
+    public function getFinishInstruction(Problem $problem): ProblemActionInstructions;
 }

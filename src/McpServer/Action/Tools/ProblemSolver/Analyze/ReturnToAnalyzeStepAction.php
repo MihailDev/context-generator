@@ -17,6 +17,9 @@ use Psr\Http\Message\ServerRequestInterface;
 )]
 final class ReturnToAnalyzeStepAction extends BaseReturnToStepAction
 {
+    /**
+     * @throws \Throwable
+     */
     #[Post(path: '/tools/call/return-to-analyze-step', name: 'tools.return-to-analyze-step')]
     public function __invoke(ServerRequestInterface $request): CallToolResult
     {

@@ -5,28 +5,30 @@ declare(strict_types=1);
 namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver;
 
 use Butschster\ContextGenerator\McpServer\Attribute\Tool;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Exceptions\ActionException;
 use Butschster\ContextGenerator\McpServer\Routing\Attribute\Post;
 use Mcp\Types\CallToolResult;
 use Psr\Http\Message\ServerRequestInterface;
 
 #[Tool(
-    name: 'continue-problem',
+    name: 'continue-last-problem',
     description: 'Continue a problem-solving step',
 )]
-final class ContinueAction extends BaseProblemAction
+class ContinueLastAction extends BaseAction
 {
-    #[Post(path: '/tools/call/continue-problem', name: 'tools.continue-problem')]
+    /**
+     * @throws ActionException
+     * @throws \Throwable
+     */
+    #[Post(path: '/tools/call/continue-last-problem', name: 'tools.continue-last-problem')]
     public function __invoke(ServerRequestInterface $request): CallToolResult
     {
-        $this->logger->info('Processing continue-or-restore tool');
+        $this->logger->info('Processing continue-last-problem tool');
 
-        // Get params from the parsed body for POST requests
-        $parsedBody = $this->validateRequiredParameters($request, []);
-
-        $problemId = $parsedBody['problem_id'];
-
-        // Get the problem and prepare for continuation
-        $problem = $this->problemService->getProblem($problemId);
+        $problem = $this->problemService->getLastProblem();
+        if (empty($problem)) {
+            $this->sendError('No problems found');
+        }
 
         try {
             $this->problemService->onContinue($problem);
@@ -37,7 +39,7 @@ final class ContinueAction extends BaseProblemAction
             return $handler->getContinueInstruction($problem)->toCallToolResult();
         } catch (\Throwable $e) {
             $this->logger->error('Error in continue or restore action', [
-                'problem_id' => $problemId,
+                'problem_id' => $problem->getId(),
                 'error' => $e->getMessage(),
             ]);
 

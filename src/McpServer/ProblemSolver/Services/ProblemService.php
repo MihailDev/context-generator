@@ -13,7 +13,6 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\Analyz
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\BarnstormingHandler;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\PlanHandler;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\ChangesHandler;
-use Psr\Container\ContainerInterface;
 
 /**
  * Service for managing problems.
@@ -27,7 +26,6 @@ final readonly class ProblemService
         private BarnstormingHandler $barnstormingHandler,
         private PlanHandler $planHandler,
         private ChangesHandler $changesHandler,
-        private ContainerInterface $container,
     ) {}
 
     /**
@@ -60,7 +58,7 @@ final readonly class ProblemService
             $problem->setDefaultProject($projectName);
         }
 
-        $this->problemRepository->save($problem);
+        $this->analyzeHandler->createProblem($problem);
 
         return $problem;
     }
@@ -178,6 +176,7 @@ final readonly class ProblemService
      */
     public function onContinue(Problem $problem): void
     {
+        $this->setLastProblem($problem);
         // Clear any return reason when continuing
         $problem->setReturnReason(null);
 
@@ -295,6 +294,13 @@ final readonly class ProblemService
         };
     }
 
+    public function getLastProblem(): ?Problem
+    {
+        $id = $this->problemDocumentRepository->getLastProblem();
+
+        return $this->problemRepository->findById($id) ?? null;
+    }
+
     /**
      * Generate a unique problem ID.
      *
@@ -302,6 +308,11 @@ final readonly class ProblemService
      */
     private function generateProblemId(): string
     {
-        return 'local-' . \date('YmdHis');
+        return 'loc-' . \date('YmdHis');
+    }
+
+    private function setLastProblem(Problem $problem): void
+    {
+        $this->problemDocumentRepository->setLastProblem($problem->getId());
     }
 }

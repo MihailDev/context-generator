@@ -89,6 +89,26 @@ readonly class FileProblemDocumentRepository implements ProblemDocumentRepositor
         return $this->get($problem, ProblemDocumentEnum::INFO, Problem::DOCUMENT_BRAINSTORMING_DRAFT);
     }
 
+    public function setLastProblem(string $getId): bool
+    {
+        $lastDocumentPath = $this->lastInfoPath();
+
+        $this->files->ensureDirectory(\dirname($lastDocumentPath));
+
+        return $this->files->write($lastDocumentPath, $getId);
+    }
+
+    public function getLastProblem(): string
+    {
+        $lastDocumentPath = $this->lastInfoPath();
+
+        if (!$this->files->exists($lastDocumentPath)) {
+            return '';
+        }
+
+        return $this->files->read($lastDocumentPath);
+    }
+
     /**
      * Get the base directory for a problem's documents.
      */
@@ -111,5 +131,10 @@ readonly class FileProblemDocumentRepository implements ProblemDocumentRepositor
     private function getDocumentPath(Problem $problem, ProblemDocumentEnum $category, string $name): string
     {
         return $this->getCategoryPath($problem, $category) . \DIRECTORY_SEPARATOR . $name;
+    }
+
+    private function lastInfoPath(): string
+    {
+        return $this->problemRepository->getProblemDirectory('_last_') . \DIRECTORY_SEPARATOR . 'id.txt';
     }
 }
