@@ -9,8 +9,9 @@ use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
 #[InputSchema(
     name: 'problem_id',
     type: 'string',
-    description: 'Problem ID',
+    description: 'Problem ID (pattern: ((?<!([A-Z]{1,10})-?)[A-Z]+-\d+))',
     required: true,
+
 )]
 abstract class BaseProblemAction extends BaseAction
 {

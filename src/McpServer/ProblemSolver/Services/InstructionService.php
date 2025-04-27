@@ -22,25 +22,11 @@ final readonly class InstructionService
         private ProblemDocumentRepositoryInterface $documentRepository,
     ) {}
 
-    /**
-     * Get instructions for the first analysis phase.
-     *
-     * @param Problem $problem The problem being analyzed
-     * @return TextContent Instructions for first analysis
-     */
-    public function getFirstAnalyzeInstructions(Problem $problem): TextContent
+    public function getFirstAnalyzeInstruction(Problem $problem): string
     {
-        return new TextContent(
-            $this->getInstruction(ProblemInstruction::FirstAnalyzeInstruction),
-        );
+        return $this->getInstruction(ProblemInstruction::FirstAnalyzeInstruction);
     }
 
-    /**
-     * Get analyze step instructions for continuing or restoring.
-     *
-     * @param Problem $problem The problem being analyzed
-     * @return TextContent Instructions for analysis
-     */
     public function getAnalyzeInstructions(Problem $problem): TextContent
     {
         return new TextContent(
@@ -245,5 +231,15 @@ TEXT;
             \array_values($replaces),
             $content,
         );
+    }
+
+    public function problemInfo(Problem $problem): string {
+        return $this->getInstruction(ProblemInstruction::ProblemInfo, [
+            "{problem_id}" => $problem->getId(),
+            "{problem_type}" => $problem->getType() ?? "Not Detected",
+            "{original_problem}" => $problem->getOriginalProblem(),
+            "{default_project}" => $problem->getDefaultProject() ?? "Not Detected",
+            "{current_step}" => $problem->getCurrentStep()->value,
+        ]);
     }
 }

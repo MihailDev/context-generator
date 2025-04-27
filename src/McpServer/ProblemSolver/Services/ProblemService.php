@@ -8,11 +8,11 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemDocumentRepositoryInterface;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemRepositoryInterface;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\StepHandlerInterface;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\AnalyzeHandler;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\BarnstormingHandler;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\PlanHandler;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\ChangesHandler;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\PlanHandler;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\StepHandlerInterface;
 
 /**
  * Service for managing problems.
@@ -308,7 +308,7 @@ final readonly class ProblemService
      */
     private function generateProblemId(): string
     {
-        return 'loc-' . \date('YmdHis');
+        return 'LOCAL-' . \date('YmdHis');
     }
 
     private function setLastProblem(Problem $problem): void

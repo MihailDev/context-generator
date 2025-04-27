@@ -68,7 +68,7 @@ final class AddProblemAction extends BaseAction
             \assert($analyzeHandler instanceof AnalyzeHandler);
 
             // Return success response with instructions
-            return $analyzeHandler->startInstructions()->toCallToolResult();
+            return $analyzeHandler->startInstructions($problem)->toCallToolResult();
         } catch (\Throwable $e) {
             $this->logger->error('Error adding problem', [
                 'original_problem' => $originalProblem,

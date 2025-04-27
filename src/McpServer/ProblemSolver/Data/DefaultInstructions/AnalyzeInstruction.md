@@ -1,19 +1,28 @@
-## Analyze Step Instructions
+# Analyze Step Instructions
 
-Review the problem details and continue with your analysis:
+Start Multi Round Analyze
 
-1. **Review the problem description**:
-    - Ensure you understand the key requirements
-    - Identify any missing information
+## Analyze Round Steps:
 
-2. **Confirm or update the problem type**:
-    - Feature, Bug, Research, or Refactoring
+### Step 1: Review the brainstorming draft
+- Ensure you understand the key requirements
+- Identify any missing information
+- Get necessary context
 
-3. **Verify the default project**:
-    - Ensure the correct project is identified
+### Step 2: Collect Context
+- Collect context: folders, files, vendor packages
+- Write Context Notes if needed
 
-4. **Finalize the brainstorming draft**:
-    - Complete any unfinished sections
-    - Add additional insights or considerations
+### Step 3: Finalize the brainstorming draft
+- Summarize draft and context
+- Save Draft and Context
+- if exist any unfinished sections go to the next round of analysis
+- if you cannot finish the section, ask for help
+- Add additional insights or considerations
 
-When ready, save your final brainstorming draft using the SaveBrainstormingDraftAction.
+### Step 4: Approve the brainstorming draft
+- Don't start this step without saving a draft
+- You need ack to approve
+- if approve run action, Approve brainstorming draft
+- else go to the next round of analysis
+

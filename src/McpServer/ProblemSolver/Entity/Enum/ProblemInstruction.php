@@ -28,4 +28,5 @@ enum ProblemInstruction: string
     case PauseInstructions = 'PauseInstructions';
     case ContinueInstructions = 'ContinueInstructions';
     case ContinueInstructionsOnError = 'ContinueInstructionsOnError';
+    case ProblemInfo = 'ProblemInfo';
 }

@@ -10,6 +10,7 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Type\ProblemActio
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemDocumentRepositoryInterface;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemRepositoryInterface;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionService;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemContextService;
 use Mcp\Types\TextContent;
 use Psr\Log\LoggerInterface;
 
@@ -25,12 +26,27 @@ final readonly class AnalyzeHandler implements StepHandlerInterface
         private InstructionService $instructionService,
         private ProblemDocumentRepositoryInterface $problemDocumentRepository,
         private BarnstormingHandler $barnstormingHandler,
+        private ProblemContextService $contextService,
     ) {}
 
     /**
      * @return TextContent[] Instructions for the next steps
      */
-    public function startInstructions(): ProblemActionInstructions {}
+    public function startInstructions(Problem $problem): ProblemActionInstructions
+    {
+
+        $instructions = new ProblemActionInstructions();
+        $instructions->add(
+            $this->instructionService->problemInfo($problem),
+        );
+
+        $instructions->add(
+            $this->instructionService->getFirstAnalyzeInstruction($problem),
+        );
+
+        return $instructions;
+
+    }
 
     public function saveBrainstormingDraft(
         Problem $problem,
@@ -46,10 +62,15 @@ final readonly class AnalyzeHandler implements StepHandlerInterface
         $this->problemDocumentRepository->setBrainstormingDraft($problem, $brainstormingDraft);
 
         $problem->setCurrentStep(ProblemStep::ANALYZE);
-
-        $instructions = new ProblemActionInstructions();
         $this->problemRepository->save($problem);
 
+        $instructions = new ProblemActionInstructions();
+
+        $instructions->add($this->instructionService->problemInfo($problem));
+
+        if ($problem->isContextChanged()) {
+            $instructions->add($this->contextService->generate($problem->getContext()));
+        }
         $instructions->add($this->instructionService->getAnalyzeInstruction($problem));
 
         return $instructions;

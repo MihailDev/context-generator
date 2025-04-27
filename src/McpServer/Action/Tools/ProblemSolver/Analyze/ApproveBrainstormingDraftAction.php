@@ -13,7 +13,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 #[Tool(
     name: 'approve-brainstorming-draft',
-    description: 'Save a brainstorming draft for a problem',
+    description: 'Approve brainstorming draft',
 )]
 final class ApproveBrainstormingDraftAction extends BaseProblemAction
 {

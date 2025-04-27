@@ -53,6 +53,8 @@ class Problem
      */
     private ?string $returnReason = null;
 
+    private bool $contextChanged = false;
+
     public function __construct(string $id, string $originalProblem)
     {
         $this->id = $id;
@@ -135,6 +137,7 @@ class Problem
 
     public function setContext(array $context): self
     {
+        $this->contextChanged = $this->compareContext($context);
         $this->context = $context;
         return $this;
     }
@@ -184,5 +187,15 @@ class Problem
             'currentStep' => $this->currentStep->value,
             'returnReason' => $this->returnReason,
         ];
+    }
+
+    public function isContextChanged(): bool
+    {
+        return $this->contextChanged;
+    }
+
+    private function compareContext(array $context): bool
+    {
+        return \json_encode($context) === \json_encode($this->context);
     }
 }
