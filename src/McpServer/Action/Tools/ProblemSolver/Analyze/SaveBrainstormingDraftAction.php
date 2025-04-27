@@ -35,10 +35,84 @@ use Psr\Http\Message\ServerRequestInterface;
     required: true,
 )]
 #[InputSchema(
-    name: 'problem_context',
+    name: 'brainstorming_context',
     type: 'object',
     description: 'Problem context with related information',
     required: false,
+    properties: [
+        "directoryOverview" => [
+            "description" => "List directories for overview",
+            "type" => "array",
+            "items" => [
+                "type" => "object",
+                "properties" => [
+                    "src" => [
+                        "type" => "string",
+                        "description" => "Directory Path",
+                    ],
+                    "purpose" => [
+                        "type" => "string",
+                        "description" => "Purpose of the directory",
+                    ],
+                ],
+                "required" => ["src", "purpose"],
+            ],
+        ],
+        "vendorOverview" => [
+            "description" => "Vendor Packages for overview",
+            "type" => "array",
+            "items" => [
+                "type" => "object",
+                "properties" => [
+                    "package" => [
+                        "type" => "string",
+                        "description" => "Package Name",
+                    ],
+                    "purpose" => [
+                        "type" => "string",
+                        "description" => "Purpose of the package",
+                    ],
+                ],
+                "required" => ["package", "purpose"],
+            ],
+        ],
+        "fileSources" => [
+            "description" => "List files for view source",
+            "type" => "array",
+            "items" => [
+                "type" => "object",
+                "properties" => [
+                    "src" => [
+                        "type" => "string",
+                        "description" => "File Path",
+                    ],
+                    "purpose" => [
+                        "type" => "string",
+                        "description" => "Purpose of the file",
+                    ],
+                ],
+                "required" => ["src", "purpose"],
+            ],
+        ],
+        "notes" => [
+            "description" => "List notes",
+            "type" => "array",
+            "items" => [
+                "type" => "object",
+                "properties" => [
+                    "title" => [
+                        "type" => "string",
+                        "description" => "Note title",
+                    ],
+                    "content" => [
+                        "type" => "string",
+                        "description" => "Note content",
+                    ],
+                ],
+                "required" => ["title", "content"],
+            ],
+        ],
+    ],
 )]
 
 final class SaveBrainstormingDraftAction extends BaseProblemAction
@@ -54,7 +128,7 @@ final class SaveBrainstormingDraftAction extends BaseProblemAction
         $problemType = $parsedBody['problem_type'];
         $defaultProject = $parsedBody['default_project'];
         $brainstormingDraft = $parsedBody['brainstorming_draft'];
-        $problemContext = $parsedBody['problem_context'] ?? [];
+        $context = $parsedBody['brainstorming_context'] ?? [];
 
         try {
             $problem = $this->problemService->getProblem($problemId);
@@ -68,7 +142,7 @@ final class SaveBrainstormingDraftAction extends BaseProblemAction
                 $problemType,
                 $defaultProject,
                 $brainstormingDraft,
-                $problemContext,
+                $context,
             );
 
 
