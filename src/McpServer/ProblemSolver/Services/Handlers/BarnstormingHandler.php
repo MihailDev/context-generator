@@ -8,22 +8,10 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Brainstorming;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Type\ProblemActionInstructions;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\BrainstormingRepositoryInterface;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionService;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
-use Butschster\ContextGenerator\McpServer\ProjectService\ProjectServiceInterface;
-use Psr\Log\LoggerInterface;
 
-/**
- * Handler for the Barnstorming step in problem solving.
- * Handles the brainstorming and task creation phase.
- */
 final readonly class BarnstormingHandler implements StepHandlerInterface
 {
     public function __construct(
-        private LoggerInterface $logger,
-        private ProblemService $problemService,
-        private InstructionService $instructionService,
-        private ProjectServiceInterface $projectService,
         private BrainstormingRepositoryInterface $brainstormingRepository,
     ) {}
 
@@ -38,11 +26,6 @@ final readonly class BarnstormingHandler implements StepHandlerInterface
         $this->brainstormingRepository->save($brainstorming);
 
         return $brainstorming;
-    }
-
-    public function instructionsOnWrongAction(string $message): ProblemActionInstructions
-    {
-        // TODO: Implement instructionsOnWrongAction() method.
     }
 
     public function getContinueInstruction(Problem $problem): ProblemActionInstructions

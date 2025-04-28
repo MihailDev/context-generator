@@ -24,7 +24,10 @@ final readonly class InstructionService
 
     public function getFirstAnalyzeInstruction(Problem $problem): string
     {
-        return $this->getInstruction(ProblemInstruction::FirstAnalyzeInstruction);
+        return $this->getInstruction(
+            ProblemInstruction::FirstAnalyzeInstruction,
+            $this->getProblemReplaceVariables($problem),
+        );
     }
 
     public function getAnalyzeInstructions(Problem $problem): TextContent
@@ -211,6 +214,14 @@ TEXT;
         ProblemStep $ANALYZE,
     ): ProblemActionInstructions {}
 
+    public function problemInfo(Problem $problem): string
+    {
+        return $this->getInstruction(
+            ProblemInstruction::ProblemInfo,
+            $this->getProblemReplaceVariables($problem),
+        );
+    }
+
     /**
      * Get instruction by template with replacements.
      *
@@ -233,13 +244,14 @@ TEXT;
         );
     }
 
-    public function problemInfo(Problem $problem): string {
-        return $this->getInstruction(ProblemInstruction::ProblemInfo, [
+    private function getProblemReplaceVariables(Problem $problem): array
+    {
+        return [
             "{problem_id}" => $problem->getId(),
             "{problem_type}" => $problem->getType() ?? "Not Detected",
             "{original_problem}" => $problem->getOriginalProblem(),
             "{default_project}" => $problem->getDefaultProject() ?? "Not Detected",
             "{current_step}" => $problem->getCurrentStep()->value,
-        ]);
+        ];
     }
 }

@@ -13,10 +13,6 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionServ
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemContextService;
 use Psr\Log\LoggerInterface;
 
-/**
- * Handler for the Analyze step in problem solving.
- * Handles first analysis of the problem and draft preparation.
- */
 final readonly class AnalyzeHandler implements StepHandlerInterface
 {
     public function __construct(
@@ -27,7 +23,6 @@ final readonly class AnalyzeHandler implements StepHandlerInterface
         private BarnstormingHandler $barnstormingHandler,
         private ProblemContextService $contextService,
     ) {}
-
 
     public function startInstructions(Problem $problem): ProblemActionInstructions
     {

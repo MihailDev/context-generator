@@ -61,10 +61,10 @@ $vendorPath = (static function (): string {
 //  Initialize Shared Container
 // -----------------------------------------------------------------------------
 
-$insidePhar = \str_starts_with(__FILE__, 'phar://');
+$insidePharOrLocal = $insidePharOrLocal ?? \str_starts_with(__FILE__, 'phar://');
 $vendorPath = \dirname($vendorPath) . '/../';
 $versionFile = $vendorPath . '/version.json';
-$appPath = $insidePhar ? \getcwd() : \realpath($vendorPath);
+$appPath = $insidePharOrLocal ? \getcwd() : \realpath($vendorPath);
 
 $version = \file_exists($versionFile)
     ? \json_decode(\file_get_contents($versionFile), true)

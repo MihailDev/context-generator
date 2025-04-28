@@ -60,6 +60,8 @@ final readonly class ProblemService
 
         $this->analyzeHandler->createProblem($problem);
 
+        $this->setLastProblem($problem);
+
         return $problem;
     }
 
