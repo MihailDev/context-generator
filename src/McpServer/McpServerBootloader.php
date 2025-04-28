@@ -25,6 +25,11 @@ use Butschster\ContextGenerator\McpServer\Action\Tools\Filesystem\FileReadAction
 use Butschster\ContextGenerator\McpServer\Action\Tools\Filesystem\FileRenameAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\Filesystem\FileWriteAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\ListToolsAction;
+use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analyze\AddProblemAction;
+use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analyze\ApproveBrainstormingDraftAction;
+use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analyze\SaveBrainstormingDraftAction;
+use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\ContinueAction;
+use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\ContinueLastAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\Prompts\GetPromptToolAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\Prompts\ListPromptsToolAction;
 use Butschster\ContextGenerator\McpServer\Console\MCPServerCommand;
@@ -87,6 +92,9 @@ final class McpServerBootloader extends Bootloader
                 'common_prompts' => [
                     'enable' =>  (bool) $env->get('MCP_COMMON_PROMPTS', true),
                 ],
+                'problem_solver' => [
+                    'enable' => (bool) $env->get('MCP_PROBLEM_SOLVER', false),
+                ],
             ],
         );
     }
@@ -116,6 +124,7 @@ final class McpServerBootloader extends Bootloader
             ProjectServiceInterface::class => new ConfigProxy(
                 interface: ProjectServiceInterface::class,
             ),
+
             Router::class => static function (StrategyInterface $strategy, #[Proxy] ContainerInterface $container) {
                 $router = new Router();
                 \assert($strategy instanceof McpResponseStrategy);
@@ -191,12 +200,29 @@ final class McpServerBootloader extends Bootloader
             }
         }
 
+        if ($config->isProblemSolverEnabled()) {
+            $actions = [
+                ...$actions,
+                AddProblemAction::class,
+                SaveBrainstormingDraftAction::class,
+                ApproveBrainstormingDraftAction::class,
+
+                ContinueAction::class,
+                ContinueLastAction::class,
+
+
+
+            ];
+        }
+
         if ($config->isCustomToolsEnabled()) {
             $actions = [
                 ...$actions,
                 ExecuteCustomToolAction::class,
             ];
         }
+
+
 
         return $actions;
     }

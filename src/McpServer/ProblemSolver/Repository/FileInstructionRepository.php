@@ -25,7 +25,10 @@ readonly class FileInstructionRepository implements InstructionRepositoryInterfa
     public function getInstructionContent(ProblemInstruction $instruction): string
     {
         $path = $this->getInstructionPath($instruction->value);
-        return $this->files->read($path);
+        if ($this->files->exists($path)) {
+            return $this->files->read($path);
+        }
+        return 'Not Found';
     }
 
     /**

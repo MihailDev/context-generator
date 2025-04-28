@@ -28,4 +28,5 @@ final class ProblemSolverBootloader extends Bootloader
             BrainstormingRepositoryInterface::class => FileBrainstormingRepository::class,
         ];
     }
+
 }

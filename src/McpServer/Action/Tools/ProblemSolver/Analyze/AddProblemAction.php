@@ -7,6 +7,7 @@ namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analy
 use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\BaseAction;
 use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
 use Butschster\ContextGenerator\McpServer\Attribute\Tool;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Exceptions\ActionException;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\AnalyzeHandler;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
 use Butschster\ContextGenerator\McpServer\ProjectService\ProjectServiceInterface;
@@ -41,6 +42,10 @@ final class AddProblemAction extends BaseAction
         parent::__construct($logger, $problemService);
     }
 
+    /**
+     * @throws ActionException
+     * @throws \Throwable
+     */
     #[Post(path: '/tools/call/add-problem', name: 'tools.add-problem')]
     public function __invoke(ServerRequestInterface $request): CallToolResult
     {
@@ -67,7 +72,6 @@ final class AddProblemAction extends BaseAction
 
             \assert($analyzeHandler instanceof AnalyzeHandler);
 
-            // Return success response with instructions
             return $analyzeHandler->startInstructions($problem)->toCallToolResult();
         } catch (\Throwable $e) {
             $this->logger->error('Error adding problem', [

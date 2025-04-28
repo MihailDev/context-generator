@@ -31,6 +31,10 @@ final class McpConfig extends InjectableConfig
             'enable' => true,
             'max_runtime' => 30,
         ],
+        'problem_solver' => [
+            'enable' => true,
+            'storage_path' => null,
+        ],
     ];
 
     public function getDocumentNameFormat(string $path, string $description, string $tags): string
@@ -80,5 +84,15 @@ final class McpConfig extends InjectableConfig
     public function isCustomToolsEnabled(): bool
     {
         return $this->config['custom_tools']['enable'] ?? true;
+    }
+
+    public function isProblemSolverEnabled(): bool
+    {
+        return $this->config['problem_solver']['enable'] ?? true;
+    }
+
+    public function getProblemSolverStoragePath(): ?string
+    {
+        return $this->config['problem_solver']['storage_path'] ?? null;
     }
 }

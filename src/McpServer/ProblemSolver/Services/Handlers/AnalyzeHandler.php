@@ -11,7 +11,6 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemDocume
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Repository\ProblemRepositoryInterface;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\InstructionService;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemContextService;
-use Mcp\Types\TextContent;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -29,9 +28,7 @@ final readonly class AnalyzeHandler implements StepHandlerInterface
         private ProblemContextService $contextService,
     ) {}
 
-    /**
-     * @return TextContent[] Instructions for the next steps
-     */
+
     public function startInstructions(Problem $problem): ProblemActionInstructions
     {
 

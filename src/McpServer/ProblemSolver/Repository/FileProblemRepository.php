@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Repository;
 
+use Butschster\ContextGenerator\DirectoriesInterface;
+use Butschster\ContextGenerator\McpServer\McpConfig;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
+use Psr\Log\LoggerInterface;
 use Spiral\Files\FilesInterface;
 
 /**
@@ -12,15 +15,23 @@ use Spiral\Files\FilesInterface;
  */
 class FileProblemRepository implements ProblemRepositoryInterface
 {
+    private string $storageDir;
+
     public function __construct(
-        private string $storageDir,
         private readonly FilesInterface $files,
+        DirectoriesInterface $directories,
+        McpConfig $config,
+        LoggerInterface $logger,
     ) {
+        $storageDir = $config->getProblemSolverStoragePath() ?? $directories->getRootPath()->join('.problems')->toString();
+
+        $logger->info("Using problem storage directory: {$storageDir}");
+
+
+
         $this->storageDir = \rtrim($storageDir, '/\\');
 
-        if ($this->files->isDirectory($this->storageDir)) {
-            $this->files->ensureDirectory($this->storageDir);
-        }
+        $this->files->ensureDirectory($this->storageDir);
     }
 
     public function save(Problem $problem): bool
