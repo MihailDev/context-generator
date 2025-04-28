@@ -27,6 +27,9 @@ final class McpConfig extends InjectableConfig
         'prompt_operations' => [
             'enable' => true,
         ],
+        'docs_tools' => [
+            'enable' => false,
+        ],
         'custom_tools' => [
             'enable' => true,
             'max_runtime' => 30,
@@ -74,6 +77,11 @@ final class McpConfig extends InjectableConfig
     public function isPromptOperationsEnabled(): bool
     {
         return $this->config['prompt_operations']['enable'] ?? false;
+    }
+
+    public function isDocsToolsEnabled(): bool
+    {
+        return $this->config['docs_tools']['enable'] ?? true;
     }
 
     public function commonPromptsEnabled(): bool
