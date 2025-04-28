@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\ProblemSolver\Exceptions;
 
-class ActionException extends \Exception
+class ActionException extends McpException
 {
     public function __construct(string $message)
     {

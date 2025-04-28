@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\Routing;
 
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Exceptions\McpException;
 use Laminas\Diactoros\Response\JsonResponse;
 use League\Route\Route;
 use League\Route\Strategy\ApplicationStrategy;
@@ -35,6 +36,8 @@ final class McpResponseStrategy extends ApplicationStrategy
             }
 
             return new JsonResponse($response);
+        } catch (McpException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error('Error while handling request', [
                 'exception' => $e,

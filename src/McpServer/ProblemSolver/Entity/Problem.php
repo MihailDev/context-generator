@@ -11,7 +11,7 @@ use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Enum\ProblemStep;
  */
 class Problem
 {
-    public const DOCUMENT_BRAINSTORMING_DRAFT = 'brainstorming_draft';
+    public const DOCUMENT_BRAINSTORMING_DRAFT = 'brainstorming_draft.md';
 
     /**
      * @var string Unique identifier for the problem
