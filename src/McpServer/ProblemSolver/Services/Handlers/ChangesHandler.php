@@ -22,4 +22,9 @@ final readonly class ChangesHandler implements StepHandlerInterface
     {
         // TODO: Implement getFinishInstruction() method.
     }
+
+    public function startInstructions(Problem $problem): ProblemActionInstructions
+    {
+        // TODO: Implement startInstructions() method.
+    }
 }
