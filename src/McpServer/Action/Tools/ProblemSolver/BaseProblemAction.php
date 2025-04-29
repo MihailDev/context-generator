@@ -4,16 +4,23 @@ declare(strict_types=1);
 
 namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver;
 
-use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Entity\Problem;
+use Butschster\ContextGenerator\McpServer\ProblemSolver\Exceptions\ActionException;
 
-#[InputSchema(
-    name: 'problem_id',
-    type: 'string',
-    description: 'Problem ID (pattern: ((?<!([A-Z]{1,10})-?)[A-Z]+-\d+))',
-    required: true,
-
-)]
 abstract class BaseProblemAction extends BaseAction
 {
-    protected array $requiredParameters = ['problem_id'];
+    /**
+     * @throws ActionException
+     */
+    protected function getLastProblem(): Problem
+    {
+        $problem = $this->problemService->getLastProblem();
+
+        if (empty($problem)) {
+            throw new ActionException('No problem found');
+        }
+
+        return $problem;
+
+    }
 }

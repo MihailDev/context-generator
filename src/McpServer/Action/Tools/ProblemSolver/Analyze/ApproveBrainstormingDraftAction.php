@@ -12,24 +12,22 @@ use Mcp\Types\CallToolResult;
 use Psr\Http\Message\ServerRequestInterface;
 
 #[Tool(
-    name: 'approve-brainstorming-draft',
+    name: 'problem-analyze-approve-draft',
     description: 'Approve brainstorming draft',
 )]
 final class ApproveBrainstormingDraftAction extends BaseProblemAction
 {
-    #[Post(path: '/tools/call/approve-brainstorming-draft', name: 'tools.approve-brainstorming-draft')]
+    #[Post(path: '/tools/call/problem-analyze-approve-draft', name: 'tools.problem-analyze-approve-draft')]
     public function __invoke(ServerRequestInterface $request): CallToolResult
     {
-        $this->logger->info('Processing approve-brainstorming-draft tool');
+        $this->logger->info('Processing problem-analyze-approve-draft tool');
 
         // Get params from the parsed body for POST requests
-        $parsedBody = $this->validateRequiredParameters($request, []);
+        // $parsedBody = $this->validateRequiredParameters($request, []);
 
-        $problemId = $parsedBody['problem_id'];
+        $problem = $this->getLastProblem();
 
         try {
-            $problem = $this->problemService->getProblem($problemId);
-
             $handler = $this->problemService->getHandler($problem);
 
             \assert($handler instanceof AnalyzeHandler);
@@ -41,8 +39,8 @@ final class ApproveBrainstormingDraftAction extends BaseProblemAction
             return $instructions->toCallToolResult();
 
         } catch (\Throwable $e) {
-            $this->logger->error('Error saving brainstorming draft', [
-                'problem_id' => $problemId,
+            $this->logger->error('Error approve brainstorming draft', [
+                'problem_id' => $problem->getId(),
                 'error' => $e->getMessage(),
             ]);
 

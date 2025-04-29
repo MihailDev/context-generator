@@ -24,11 +24,9 @@ abstract class BaseReturnToStepAction extends BaseProblemAction
         $this->logger->info('Processing return-to-step ' . $step->value . ' tool');
 
         $parsedBody = $this->validateRequiredParameters($request, ['return_reason']);
-
-        $problemId = $parsedBody['problem_id'];
+        $problem = $this->getLastProblem();
 
         try {
-            $problem = $this->problemService->getProblem($problemId);
             $this->problemService->restoreToStep(
                 $problem,
                 $step,
@@ -42,7 +40,7 @@ abstract class BaseReturnToStepAction extends BaseProblemAction
             $this->logger->error(
                 'Error in restore action',
                 [
-                    'problem_id' => $problemId,
+                    'problem_id' => $problem->getId(),
                     'error' => $e->getMessage(),
                 ],
             );

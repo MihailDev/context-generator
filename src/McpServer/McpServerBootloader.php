@@ -26,7 +26,7 @@ use Butschster\ContextGenerator\McpServer\Action\Tools\Filesystem\FileReadAction
 use Butschster\ContextGenerator\McpServer\Action\Tools\Filesystem\FileRenameAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\Filesystem\FileWriteAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\ListToolsAction;
-use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analyze\AddProblemAction;
+use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\AddProblemAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analyze\ApproveBrainstormingDraftAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analyze\SaveBrainstormingDraftAction;
 use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\ContinueAction;

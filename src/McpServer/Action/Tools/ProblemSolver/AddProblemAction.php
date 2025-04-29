@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\Analyze;
+namespace Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver;
 
-use Butschster\ContextGenerator\McpServer\Action\Tools\ProblemSolver\BaseAction;
 use Butschster\ContextGenerator\McpServer\Attribute\InputSchema;
 use Butschster\ContextGenerator\McpServer\Attribute\Tool;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Exceptions\ActionException;
-use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\Handlers\AnalyzeHandler;
 use Butschster\ContextGenerator\McpServer\ProblemSolver\Services\ProblemService;
 use Butschster\ContextGenerator\McpServer\ProjectService\ProjectServiceInterface;
 use Butschster\ContextGenerator\McpServer\Routing\Attribute\Post;
@@ -17,7 +15,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 
 #[Tool(
-    name: 'add-problem',
+    name: 'problem-add-new',
     description: 'Add a new problem to be solved',
 )]
 #[InputSchema(
@@ -46,7 +44,7 @@ final class AddProblemAction extends BaseAction
      * @throws ActionException
      * @throws \Throwable
      */
-    #[Post(path: '/tools/call/add-problem', name: 'tools.add-problem')]
+    #[Post(path: '/tools/call/problem-add-new', name: 'tools.problem-add-new')]
     public function __invoke(ServerRequestInterface $request): CallToolResult
     {
         $this->logger->info('Processing add-problem tool');
@@ -61,18 +59,15 @@ final class AddProblemAction extends BaseAction
         }
 
         try {
-            // Create a new problem
             $problem = $this->problemService->createProblem(
                 $originalProblem,
                 $problemId,
                 $this->projectService->getProjectName(),
             );
 
-            $analyzeHandler = $this->problemService->getHandler($problem);
+            $handler = $this->problemService->getHandler($problem);
 
-            \assert($analyzeHandler instanceof AnalyzeHandler);
-
-            return $analyzeHandler->startInstructions($problem)->toCallToolResult();
+            return $handler->startInstructions($problem)->toCallToolResult();
         } catch (\Throwable $e) {
             $this->logger->error('Error adding problem', [
                 'original_problem' => $originalProblem,

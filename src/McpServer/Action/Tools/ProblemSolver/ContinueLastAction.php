@@ -11,10 +11,10 @@ use Mcp\Types\CallToolResult;
 use Psr\Http\Message\ServerRequestInterface;
 
 #[Tool(
-    name: 'continue-last-problem',
-    description: 'Continue a problem-solving step',
+    name: 'problem-continue',
+    description: 'Continue last problem',
 )]
-class ContinueLastAction extends BaseAction
+class ContinueLastAction extends BaseProblemAction
 {
     /**
      * @throws ActionException
@@ -25,10 +25,7 @@ class ContinueLastAction extends BaseAction
     {
         $this->logger->info('Processing continue-last-problem tool');
 
-        $problem = $this->problemService->getLastProblem();
-        if (empty($problem)) {
-            $this->sendError('No problems found');
-        }
+        $problem = $this->getLastProblem();
 
         try {
             $this->problemService->onContinue($problem);
@@ -38,7 +35,7 @@ class ContinueLastAction extends BaseAction
             // Return continue instructions
             return $handler->getContinueInstruction($problem)->toCallToolResult();
         } catch (\Throwable $e) {
-            $this->logger->error('Error in continue or restore action', [
+            $this->logger->error('Error in continue last action', [
                 'problem_id' => $problem->getId(),
                 'error' => $e->getMessage(),
             ]);

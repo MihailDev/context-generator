@@ -14,7 +14,7 @@ use Mcp\Types\CallToolResult;
 use Psr\Http\Message\ServerRequestInterface;
 
 #[Tool(
-    name: 'save-brainstorming-draft',
+    name: 'problem-analyze-save-draft',
     description: 'Save a brainstorming draft',
 )]
 #[InputSchema(
@@ -46,10 +46,10 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class SaveBrainstormingDraftAction extends BaseProblemAction
 {
-    #[Post(path: '/tools/call/save-brainstorming-draft', name: 'tools.save-brainstorming-draft')]
+    #[Post(path: '/tools/call/problem-analyze-save-draft', name: 'tools.problem-analyze-save-draft')]
     public function __invoke(ServerRequestInterface $request): CallToolResult
     {
-        $this->logger->info('Processing save-brainstorming-draft tool');
+        $this->logger->info('Processing problem-analyze-save-draft tool');
 
         $parsedBody = $this->validateRequiredParameters($request, [ 'problem_type', 'default_project', 'brainstorming_draft']);
 
